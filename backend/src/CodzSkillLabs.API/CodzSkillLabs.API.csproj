@@ -16,4 +16,12 @@
     <ProjectReference Include="..\CodzSkillLabs.InfraStructure\CodzSkillLabs.InfraStructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="MiddleWare\" />
+    <Folder Include="Filters\" />
+    <Folder Include="Authorization\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Configuration\" />
+  </ItemGroup>
+
 </Project>
