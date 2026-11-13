@@ -1,1 +1,5 @@
-<Solution />
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="CodzSkillLabs.Application/CodzSkillLabs.Application.csproj" Id="472b3ac6-154e-4996-81d8-190fec3825f3" />
+  </Folder>
+</Solution>
