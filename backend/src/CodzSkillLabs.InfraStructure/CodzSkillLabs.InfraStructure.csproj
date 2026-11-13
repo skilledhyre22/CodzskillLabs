@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\CodzSkillLabs.Application\CodzSkillLabs.Application.csproj" />
+  </ItemGroup>
+
 </Project>
