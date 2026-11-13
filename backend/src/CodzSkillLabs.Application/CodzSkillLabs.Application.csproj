@@ -10,4 +10,25 @@
     <ProjectReference Include="..\CodzSkillLabs.Domain\CodzSkillLabs.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Abstractions\Integrations\" />
+    <Folder Include="Abstractions\Notifications\" />
+    <Folder Include="Abstractions\Payments\" />
+    <Folder Include="Common\Behaviors\" />
+    <Folder Include="Common\Exceptions\" />
+    <Folder Include="Common\Models\" />
+    <Folder Include="Common\Mapping\" />
+    <Folder Include="Common\Validation\" />
+    <Folder Include="Modules\Identity\" />
+    <Folder Include="Modules\Interviewers\" />
+    <Folder Include="Modules\InterviewCatalogue\" />
+    <Folder Include="Modules\Bookings\" />
+    <Folder Include="Modules\LiveSessions\" />
+    <Folder Include="Modules\Evaluations\" />
+    <Folder Include="Modules\SkillezoIntegration\" />
+    <Folder Include="Modules\Notifications\" />
+    <Folder Include="Modules\Payments\" />
+    <Folder Include="Modules\Scheduling\" />
+  </ItemGroup>
+
 </Project>
