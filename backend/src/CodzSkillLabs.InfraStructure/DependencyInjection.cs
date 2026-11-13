@@ -1,6 +1,6 @@
 ﻿namespace CodzSkillLabs.InfraStructure
 {
-    public class Class1
+    public class DependencyInjection
     {
 
     }
