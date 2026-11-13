@@ -20,4 +20,8 @@
     <Folder Include="Persistance\Repositories\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CodzSkillLabs.Application\CodzSkillLabs.Application.csproj" />
+  </ItemGroup>
+
 </Project>
