@@ -7,20 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Identity\" />
-    <Folder Include="Integrations\Skillezo\" />
-    <Folder Include="BackgroundJobs\" />
-    <Folder Include="Storage\" />
-    <Folder Include="Notifications\" />
-    <Folder Include="Video\" />
-    <Folder Include="Payments\" />
-    <Folder Include="Persistance\Configurations\" />
-    <Folder Include="Persistance\Migrations\" />
-    <Folder Include="Persistance\Seed\" />
-    <Folder Include="Persistance\Repositories\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CodzSkillLabs.Application\CodzSkillLabs.Application.csproj" />
   </ItemGroup>
 
