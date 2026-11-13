@@ -1,0 +1,48 @@
+
+# Visual Studio
+.vs/
+**/.vs/
+*.suo
+*.user
+*.csproj.user
+*.sln.docstates
+.vscode/
+.idea/
+
+# .NET
+**/bin/
+**/obj/
+**/Log/
+*.dll
+*.pdb
+*.cache
+TestResults/
+
+# React / Node
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/build/
+**/coverage/
+*.log
+*.local
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary
+*.tmp
+*.bak
+*.swp
+*.temp
