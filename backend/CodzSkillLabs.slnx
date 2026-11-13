@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="CodzSkillLabs.Application/CodzSkillLabs.Application.csproj" Id="472b3ac6-154e-4996-81d8-190fec3825f3" />
     <Project Path="src/CodzSkillLabs.API/CodzSkillLabs.API.csproj" Id="f1213134-bbb2-449e-985b-7a1380f079df" />
     <Project Path="src/CodzSkillLabs.Domain/CodzSkillLabs.Domain.csproj" Id="179a439c-7f07-4e94-87a5-08bea31cc4f5" />
     <Project Path="src/CodzSkillLabs.InfraStructure/CodzSkillLabs.InfraStructure.csproj" Id="eb604ca4-a7da-42c5-9b21-1010a200bbe0" />

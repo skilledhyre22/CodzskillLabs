@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CodzSkillLabs.Application\CodzSkillLabs.Application.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Identity\" />
     <Folder Include="Integrations\Skillezo\" />
     <Folder Include="BackgroundJobs\" />
