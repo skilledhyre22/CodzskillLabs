@@ -1,0 +1,4486 @@
+Here is a complete, production-structured React + TypeScript + Tailwind CSS
+frontend implementation for CodzSkill Labs, designed to match the visual layout,
+color palette, typography, and dashboard workflows of your reference screenshot
+while remaining cleanly architected for integration with an ASP.NET Core 10 Web
+API backend.
+
+1. Project Structure
+
+codzskill-labs/
+
+
+├── .env.example
+├── index.html
+├── package.json
+├── tailwind.config.js
+├── tsconfig.json
+└── src/
+    ├── assets/
+    │   └── index.ts
+    ├── components/
+    │   ├── common/
+    │   │   ├── Badge.tsx
+    │   │   ├── Button.tsx
+    │   │   ├── Card.tsx
+    │   │   ├── CourseCard.tsx
+    │   │   ├── Footer.tsx
+    │   │   ├── Logo.tsx
+    │   │   ├── Modal.tsx
+    │   │   ├── Navbar.tsx
+    │   │   └── StatCard.tsx
+    │   └── live/
+    │       ├── CodeEditorPane.tsx
+    │       └── LiveSidebar.tsx
+    ├── context/
+    │   └── AuthContext.tsx
+    ├── hooks/
+    │   └── useAsync.ts
+    ├── layouts/
+    │   ├── DashboardLayout.tsx
+    │   └── PublicLayout.tsx
+    ├── pages/
+    │   ├── auth/
+    │   │   ├── JoinPage.tsx
+    │   │   ├── LoginPage.tsx
+    │   │   └── RegisterPage.tsx
+    │   ├── learner/
+    │   │   └── LearnerDashboardPage.tsx
+    │   ├── trainer/
+    │   │   └── TrainerDashboardPage.tsx
+    │   ├── CohortDetailsPage.tsx
+    │   ├── CorporateTrainingPage.tsx
+    │   ├── ExploreCoursesPage.tsx
+    │   ├── LandingPage.tsx
+    │   └── LiveClassPage.tsx
+    ├── services/
+    │   ├── apiClient.ts
+    │   ├── apiConfig.ts
+    │   ├── authService.ts
+    │   ├── corporateService.ts
+    │   ├── courseService.ts
+    │   ├── dashboardService.ts
+    │   └── mockData.ts
+    ├── types/
+    │   └── index.ts
+    ├── utils/
+    │   ├── formatters.ts
+    │   └── validators.ts
+    ├── App.tsx
+    ├── index.css
+    └── main.tsx
+
+2. Configuration & Dependencies
+
+package.json
+
+{
+  "name": "codzskill-labs",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "lucide-react": "^0.454.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.10"
+  }
+}
+
+.env.example
+
+VITE_API_BASE_URL=https://localhost:7001/api
+VITE_USE_MOCK_DATA=true
+
+tailwind.config.js
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        navy: {
+          950: '#070B19',
+          900: '#0D132B',
+          800: '#161F42',
+          700: '#1F2A56',
+        },
+        brand: {
+          50: '#F5F3FF',
+          100: '#EDE9FE',
+          500: '#8B5CF6',
+          600: '#7C3AED',
+          700: '#6D28D9',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+    },
+  },
+  plugins: [],
+};
+
+src/index.css
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+.hero-mesh {
+  background-color: #070b19;
+  background-image:
+    radial-gradient(at 18% 20%, rgba(109, 40, 217, 0.28) 0px, transparent 50%),
+    radial-gradient(at 82% 35%, rgba(79, 70, 229, 0.28) 0px, transparent 55%),
+    radial-gradient(at 55% 95%, rgba(124, 58, 237, 0.16) 0px, transparent 50%);
+}
+
+3. TypeScript Interfaces (src/types/index.ts)
+
+export type UserRole = 'Learner' | 'Trainer' | 'CorporateAdmin';
+
+export interface User {
+  id: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
+  avatarUrl?: string;
+  headline?: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  refreshToken?: string;
+  expiresAt: string;
+  user: User;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  role: 'Learner' | 'Trainer';
+  expertise?: string;
+  experienceYears?: number;
+}
+
+export type CourseCategory =
+  | 'All'
+  | 'Development'
+  | 'AI & Data'
+  | 'Cloud & DevOps'
+  | 'Business'
+  | 'Design';
+
+export interface Course {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  category: Exclude<CourseCategory, 'All'>;
+  badgeText: string;
+  techTag: string;
+  gradientClass: string;
+  rating: number;
+  reviewCount: number;
+  durationWeeks: number;
+  priceInr: number;
+  level: string;
+  trainerName: string;
+  trainerTitle: string;
+  learnersCount: number;
+  status?: 'Published' | 'Draft';
+  progressPercent?: number;
+}
+
+export interface CohortCurriculumModule {
+  week: string;
+  title: string;
+  topics: string[];
+}
+
+export interface CohortDetails extends Course {
+  tags: string[];
+  liveClassesPerWeek: number;
+  projectsCount: number;
+  certificateVerified: boolean;
+  overview: string;
+  curriculum: CohortCurriculumModule[];
+  projects: { title: string; description: string; stack: string[] }[];
+  schedule: { day: string; time: string; sessionType: string }[];
+  faqs: { question: string; answer: string }[];
+}
+
+export interface LiveSessionItem {
+  id: string;
+  title: string;
+  scheduleText: string;
+  courseId: string;
+  isLiveNow?: boolean;
+}
+
+export interface AssignmentItem {
+  id: string;
+  title: string;
+  courseTitle: string;
+  dueDate: string;
+  status: 'Pending' | 'Submitted' | 'Graded';
+}
+
+export interface CertificateItem {
+  id: string;
+  title: string;
+  issuedDate: string;
+  credentialCode: string;
+}
+
+export interface LearnerDashboardData {
+  activeCoursesCount: number;
+  liveSessionsCount: number;
+  assignmentsDueCount: number;
+  certificatesCount: number;
+  continueLearning: Course[];
+  upcomingSessions: LiveSessionItem[];
+  assignments: AssignmentItem[];
+  certificates: CertificateItem[];
+}
+
+export interface TrainerLearnerSummary {
+  id: string;
+  name: string;
+  email: string;
+  cohort: string;
+  progress: number;
+}
+
+export interface TrainerDashboardData {
+  publishedCoursesCount: number;
+  activeCohortsCount: number;
+  oneOnOneSessionsCount: number;
+  totalEarningsInr: number;
+  courses: Course[];
+  learners: TrainerLearnerSummary[];
+}
+
+export interface CorporateProposalRequest {
+  companyName: string;
+  contactName: string;
+  workEmail: string;
+  teamSize: string;
+  focusArea: string;
+  deliveryMode: 'Online' | 'On-site' | 'Hybrid';
+  notes: string;
+}
+
+export interface CorporateProposalResponse {
+  referenceId: string;
+  message: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: string;
+  role?: 'Trainer' | 'Learner';
+  time: string;
+  text: string;
+}
+
+4. Utils & Assets
+
+src/assets/index.ts
+
+export const PLATFORM_MEDIA = {
+  heroStudent:
+    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=900&q=80',
+  corporateTeam:
+    'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
+  priyaAvatar:
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=240&q=80',
+  rahulAvatar:
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80',
+  amitAvatar:
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80',
+};
+
+src/utils/formatters.ts
+
+export function formatInr(amount: number): string {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export function cn(...classes: Array<string | false | null | undefined>): string {
+  return classes.filter(Boolean).join(' ');
+}
+
+src/utils/validators.ts
+
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+export function minLength(value: string, length: number): boolean {
+  return value.trim().length >= length;
+}
+
+5. Centralized Axios Configuration & Configurable Services
+
+src/services/apiConfig.ts
+
+/**
+ * Central endpoint configuration for ASP.NET Core Web API integration.
+ * Update paths here to match your backend controller routes without touching UI components.
+ */
+export const API_CONFIG = {
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://localhost:7001/api',
+  useMockData: (import.meta.env.VITE_USE_MOCK_DATA ?? 'true') === 'true',
+  endpoints: {
+    auth: {
+      login: import.meta.env.VITE_EP_LOGIN || '/auth/login',
+      register: import.meta.env.VITE_EP_REGISTER || '/auth/register',
+      me: import.meta.env.VITE_EP_ME || '/auth/me',
+    },
+    courses: {
+      list: import.meta.env.VITE_EP_COURSES || '/courses',
+      cohortBySlug: import.meta.env.VITE_EP_COHORT || '/cohorts',
+      enroll: import.meta.env.VITE_EP_ENROLL || '/enrollments',
+    },
+    dashboards: {
+      learner: import.meta.env.VITE_EP_LEARNER_DASH || '/learner/dashboard',
+      trainer: import.meta.env.VITE_EP_TRAINER_DASH || '/trainer/dashboard',
+    },
+    corporate: {
+      proposal: import.meta.env.VITE_EP_CORPORATE_PROPOSAL || '/corporate/proposals',
+    },
+  },
+};
+
+src/services/apiClient.ts
+
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { API_CONFIG } from './apiConfig';
+
+const TOKEN_STORAGE_KEY = 'codzskill_jwt_token';
+
+export const tokenStorage = {
+  get: (): string | null => localStorage.getItem(TOKEN_STORAGE_KEY),
+  set: (token: string) => localStorage.setItem(TOKEN_STORAGE_KEY, token),
+  clear: () => localStorage.removeItem(TOKEN_STORAGE_KEY),
+};
+
+export interface ApiError {
+  status?: number;
+  message: string;
+  details?: Record<string, string[]>;
+}
+
+const apiClient = axios.create({
+  baseURL: API_CONFIG.baseUrl,
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = tokenStorage.get();
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<{ title?: string; message?: string; errors?: Record<string, string[]> }>) => {
+    if (error.response?.status === 401) {
+      tokenStorage.clear();
+    }
+
+    const normalizedError: ApiError = {
+      status: error.response?.status,
+      message:
+        error.response?.data?.message ||
+        error.response?.data?.title ||
+        error.message ||
+        'An unexpected network error occurred.',
+      details: error.response?.data?.errors,
+    };
+
+    return Promise.reject(normalizedError);
+  }
+);
+
+export default apiClient;
+
+src/services/mockData.ts
+
+import {
+  ChatMessage,
+  CohortDetails,
+  Course,
+  LearnerDashboardData,
+  TrainerDashboardData,
+} from '../types';
+
+export const MOCK_COURSES: Course[] = [
+  {
+    id: 'crs-dotnet-10',
+    slug: 'aspnet-core-enterprise-development',
+    title: 'ASP.NET Core 10 Enterprise Development',
+    subtitle: 'Build scalable REST APIs, Clean Architecture, EF Core & microservices.',
+    category: 'Development',
+    badgeText: 'Live Cohort',
+    techTag: '.NET',
+    gradientClass: 'from-violet-600 via-purple-600 to-indigo-700',
+    rating: 4.8,
+    reviewCount: 1240,
+    durationWeeks: 8,
+    priceInr: 14999,
+    level: 'Beginner to Advanced',
+    trainerName: 'Rahul Verma',
+    trainerTitle: 'Principal .NET Architect',
+    learnersCount: 120,
+    status: 'Published',
+    progressPercent: 66,
+  },
+  {
+    id: 'crs-react-adv',
+    slug: 'reactjs-basics-to-advanced',
+    title: 'React.js – From Basics to Advanced',
+    subtitle: 'Master TypeScript, hooks, state management, Tailwind CSS & testing.',
+    category: 'Development',
+    badgeText: 'Live Cohort',
+    techTag: 'React',
+    gradientClass: 'from-cyan-700 via-teal-700 to-slate-900',
+    rating: 4.7,
+    reviewCount: 980,
+    durationWeeks: 6,
+    priceInr: 12999,
+    level: 'Intermediate',
+    trainerName: 'Ananya Nair',
+    trainerTitle: 'Staff Frontend Engineer',
+    learnersCount: 96,
+    status: 'Published',
+    progressPercent: 42,
+  },
+  {
+    id: 'crs-genai-dev',
+    slug: 'generative-ai-for-developers',
+    title: 'Generative AI for Developers',
+    subtitle: 'Build RAG pipelines, LLM agents, vector databases & Semantic Kernel apps.',
+    category: 'AI & Data',
+    badgeText: 'Live Cohort',
+    techTag: 'AI',
+    gradientClass: 'from-indigo-700 via-purple-700 to-fuchsia-800',
+    rating: 4.8,
+    reviewCount: 620,
+    durationWeeks: 6,
+    priceInr: 16999,
+    level: 'Intermediate',
+    trainerName: 'Dr. Vikram Sethi',
+    trainerTitle: 'AI Solutions Lead',
+    learnersCount: 64,
+    status: 'Published',
+  },
+  {
+    id: 'crs-azure-devops',
+    slug: 'cloud-devops-azure-kubernetes',
+    title: 'Azure Cloud & Kubernetes DevOps',
+    subtitle: 'CI/CD pipelines, Docker, AKS, Terraform and observability at scale.',
+    category: 'Cloud & DevOps',
+    badgeText: 'Hands-on Lab',
+    techTag: 'Cloud',
+    gradientClass: 'from-blue-700 via-indigo-800 to-slate-900',
+    rating: 4.9,
+    reviewCount: 540,
+    durationWeeks: 8,
+    priceInr: 15999,
+    level: 'Intermediate',
+    trainerName: 'Karan Malhotra',
+    trainerTitle: 'Cloud DevOps Architect',
+    learnersCount: 82,
+    status: 'Published',
+  },
+  {
+    id: 'crs-product-mgmt',
+    slug: 'tech-product-strategy-analytics',
+    title: 'Product Management & Growth Analytics',
+    subtitle: 'Roadmapping, SaaS metrics, stakeholder alignment and AI product strategy.',
+    category: 'Business',
+    badgeText: 'Cohort Program',
+    techTag: 'PM',
+    gradientClass: 'from-slate-800 via-purple-900 to-indigo-950',
+    rating: 4.6,
+    reviewCount: 410,
+    durationWeeks: 5,
+    priceInr: 11499,
+    level: 'All Levels',
+    trainerName: 'Meera Kapoor',
+    trainerTitle: 'VP Product Strategy',
+    learnersCount: 53,
+    status: 'Published',
+  },
+  {
+    id: 'crs-ui-ux-sys',
+    slug: 'saas-design-systems-figma',
+    title: 'SaaS UI/UX & Design Systems Mastery',
+    subtitle: 'Design tokens, accessible component libraries, prototyping & handoff.',
+    category: 'Design',
+    badgeText: 'Live Cohort',
+    techTag: 'UI/UX',
+    gradientClass: 'from-fuchsia-700 via-purple-700 to-slate-900',
+    rating: 4.8,
+    reviewCount: 390,
+    durationWeeks: 6,
+    priceInr: 10999,
+    level: 'Beginner to Pro',
+    trainerName: 'Rohan Kulkarni',
+    trainerTitle: 'Design Systems Lead',
+    learnersCount: 74,
+    status: 'Published',
+  },
+];
+
+export const MOCK_COHORT_DETAIL: CohortDetails = {
+  ...MOCK_COURSES[0],
+  slug: 'aspnet-core-full-stack-cohort',
+  title: 'ASP.NET Core Full Stack Development – Live Cohort',
+  subtitle:
+    'Build real-world, production-ready applications with ASP.NET Core, React and SQL Server.',
+  durationWeeks: 12,
+  priceInr: 19999,
+  tags: ['Live Cohort', 'Beginner to Advanced', 'Project Based'],
+  liveClassesPerWeek: 3,
+  projectsCount: 2,
+  certificateVerified: true,
+  overview:
+    'This intensive 12-week live cohort takes you from C# and ASP.NET Core Web API fundamentals to deploying full-stack enterprise systems with React, TypeScript, SQL Server, and Docker. Every week includes live code-alongs, architecture reviews, and mentor feedback.',
+  curriculum: [
+    {
+      week: 'Weeks 1–3',
+      title: 'ASP.NET Core 10 Web API & Clean Architecture',
+      topics: [
+        'Minimal APIs vs Controller-based REST services',
+        'Dependency Injection, Middleware & Global Exception Handling',
+        'Entity Framework Core 10, LINQ optimization & SQL Server migrations',
+      ],
+    },
+    {
+      week: 'Weeks 4–6',
+      title: 'Security, Auth & Microservice Patterns',
+      topics: [
+        'JWT Bearer Authentication, Refresh Tokens & Role-Based Policies',
+        'Redis Caching, Background Workers & Serilog Observability',
+        'Automated Integration Testing with xUnit & WebApplicationFactory',
+      ],
+    },
+    {
+      week: 'Weeks 7–9',
+      title: 'React + TypeScript Frontend Integration',
+      topics: [
+        'Component Architecture, Custom Hooks & React Router',
+        'Axios Interceptors, Optimistic UI & Tailwind Design Systems',
+        'Real-time updates with SignalR',
+      ],
+    },
+    {
+      week: 'Weeks 10–12',
+      title: 'Capstone Deployment & Career Readiness',
+      topics: [
+        'Dockerizing .NET APIs + React SPA with GitHub Actions CI/CD',
+        'Azure App Service & SQL Cloud Deployment',
+        'Mock System Design Interviews & Portfolio Review',
+      ],
+    },
+  ],
+  projects: [
+    {
+      title: 'Enterprise EdTech & Cohort Marketplace',
+      description:
+        'Multi-role platform supporting learner enrollments, trainer payouts, and SignalR live class chat.',
+      stack: ['ASP.NET Core 10', 'React', 'TypeScript', 'SQL Server'],
+    },
+    {
+      title: 'Distributed Order & Inventory Microservice',
+      description:
+        'Event-driven backend using Clean Architecture, Redis caching, and automated Docker deployment.',
+      stack: ['EF Core', 'JWT Auth', 'Docker', 'GitHub Actions'],
+    },
+  ],
+  schedule: [
+    { day: 'Tuesday', time: '7:30 PM – 9:30 PM IST', sessionType: 'Live Architecture & Coding' },
+    { day: 'Thursday', time: '7:30 PM – 9:30 PM IST', sessionType: 'Hands-on Feature Build' },
+    { day: 'Saturday', time: '11:00 AM – 1:00 PM IST', sessionType: 'Project Lab & Code Review' },
+  ],
+  faqs: [
+    {
+      question: 'Are live sessions recorded if I miss a class?',
+      answer:
+        'Yes. HD recordings, repository commits, and lab guides are published within 2 hours of each live session.',
+    },
+    {
+      question: 'What prerequisites do I need?',
+      answer:
+        'Basic familiarity with any programming language and OOP concepts. We cover C# and TypeScript foundations in Week 1.',
+    },
+    {
+      question: 'Is the certificate verified?',
+      answer:
+        'Yes, every graduate receives a verifiable CodzSkill Labs credential link upon completing both capstone projects.',
+    },
+  ],
+};
+
+export const MOCK_LEARNER_DASHBOARD: LearnerDashboardData = {
+  activeCoursesCount: 3,
+  liveSessionsCount: 12,
+  assignmentsDueCount: 4,
+  certificatesCount: 2,
+  continueLearning: [
+    {
+      ...MOCK_COURSES[0],
+      title: 'ASP.NET Core 10: Building Enterprise Applications',
+      progressPercent: 66,
+    },
+    {
+      ...MOCK_COURSES[1],
+      progressPercent: 42,
+    },
+  ],
+  upcomingSessions: [
+    {
+      id: 'sess-1',
+      title: 'ASP.NET Core – Live Session',
+      scheduleText: 'Today, 7:00 PM',
+      courseId: 'crs-dotnet-10',
+      isLiveNow: true,
+    },
+    {
+      id: 'sess-2',
+      title: 'Project Lab – Team Review',
+      scheduleText: 'Tomorrow, 6:30 PM',
+      courseId: 'crs-dotnet-10',
+    },
+  ],
+  assignments: [
+    {
+      id: 'asg-1',
+      title: 'Implement ProductController & DI Repository',
+      courseTitle: 'ASP.NET Core 10 Enterprise Development',
+      dueDate: 'Tomorrow, 11:59 PM',
+      status: 'Pending',
+    },
+    {
+      id: 'asg-2',
+      title: 'JWT Refresh Token Middleware Lab',
+      courseTitle: 'ASP.NET Core 10 Enterprise Development',
+      dueDate: 'In 4 days',
+      status: 'Pending',
+    },
+    {
+      id: 'asg-3',
+      title: 'Accessible Dashboard Modal Component',
+      courseTitle: 'React.js – From Basics to Advanced',
+      dueDate: 'Submitted',
+      status: 'Graded',
+    },
+  ],
+  certificates: [
+    {
+      id: 'cert-1',
+      title: 'C# & Object-Oriented Architecture Foundations',
+      issuedDate: 'Oct 2026',
+      credentialCode: 'CSL-2026-DOTNET-9041',
+    },
+    {
+      id: 'cert-2',
+      title: 'Modern TypeScript & Tailwind CSS Systems',
+      issuedDate: 'Aug 2026',
+      credentialCode: 'CSL-2026-FE-4418',
+    },
+  ],
+};
+
+export const MOCK_TRAINER_DASHBOARD: TrainerDashboardData = {
+  publishedCoursesCount: 6,
+  activeCohortsCount: 3,
+  oneOnOneSessionsCount: 18,
+  totalEarningsInr: 124500,
+  courses: MOCK_COURSES.slice(0, 3),
+  learners: [
+    {
+      id: 'lrn-1',
+      name: 'Priya Sharma',
+      email: 'priya.sharma@example.com',
+      cohort: 'ASP.NET Core 10 Cohort',
+      progress: 66,
+    },
+    {
+      id: 'lrn-2',
+      name: 'Amit Patel',
+      email: 'amit.patel@example.com',
+      cohort: 'ASP.NET Core 10 Cohort',
+      progress: 78,
+    },
+    {
+      id: 'lrn-3',
+      name: 'Sneha Reddy',
+      email: 'sneha.reddy@example.com',
+      cohort: 'React.js Advanced',
+      progress: 54,
+    },
+  ],
+};
+
+export const INITIAL_LIVE_CHAT: ChatMessage[] = [
+  {
+    id: 'm1',
+    sender: 'Priya',
+    role: 'Learner',
+    time: '7:13 PM',
+    text: 'Can you explain the routing attributes again?',
+  },
+  {
+    id: 'm2',
+    sender: 'Amit',
+    role: 'Learner',
+    time: '7:14 PM',
+    text: 'Yes, a quick example will help.',
+  },
+  {
+    id: 'm3',
+    sender: 'Trainer',
+    role: 'Trainer',
+    time: '7:15 PM',
+    text: "Sure, I'll show that now in the code.",
+  },
+];
+
+export const INITIAL_LIVE_CODE = `namespace Codzskill.Labs.Demo;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductController : ControllerBase
+{
+    private readonly IProductService _service;
+
+    public ProductController(IProductService service)
+    {
+        _service = service;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var products = await _service.GetAllAsync();
+        return Ok(products);
+    }
+}`;
+
+src/services/authService.ts
+
+import apiClient, { tokenStorage } from './apiClient';
+import { API_CONFIG } from './apiConfig';
+import { AuthResponse, LoginRequest, RegisterRequest, User } from '../types';
+import { PLATFORM_MEDIA } from '../assets';
+
+export const authService = {
+  async login(payload: LoginRequest): Promise<AuthResponse> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.post<AuthResponse>(API_CONFIG.endpoints.auth.login, payload);
+      tokenStorage.set(data.token);
+      return data;
+    }
+
+    await new Promise((res) => setTimeout(res, 450));
+    const isTrainer = payload.email.toLowerCase().includes('trainer') || payload.email.toLowerCase().includes('rahul');
+
+    const mockUser: User = isTrainer
+      ? {
+          id: 'usr-trainer-1',
+          fullName: 'Rahul Verma',
+          email: payload.email,
+          role: 'Trainer',
+          avatarUrl: PLATFORM_MEDIA.rahulAvatar,
+          headline: 'Principal .NET Architect',
+        }
+      : {
+          id: 'usr-learner-1',
+          fullName: 'Priya Sharma',
+          email: payload.email,
+          role: 'Learner',
+          avatarUrl: PLATFORM_MEDIA.priyaAvatar,
+          headline: 'Full-Stack Developer',
+        };
+
+    const response: AuthResponse = {
+      token: 'mock.jwt.token.codzskill.labs',
+      expiresAt: new Date(Date.now() + 86400 * 1000).toISOString(),
+      user: mockUser,
+    };
+    tokenStorage.set(response.token);
+    return response;
+  },
+
+  async register(payload: RegisterRequest): Promise<AuthResponse> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.post<AuthResponse>(
+        API_CONFIG.endpoints.auth.register,
+        payload
+      );
+      tokenStorage.set(data.token);
+      return data;
+    }
+
+    await new Promise((res) => setTimeout(res, 500));
+    const response: AuthResponse = {
+      token: 'mock.jwt.token.codzskill.labs',
+      expiresAt: new Date(Date.now() + 86400 * 1000).toISOString(),
+      user: {
+        id: `usr-${Date.now()}`,
+        fullName: payload.fullName,
+        email: payload.email,
+        role: payload.role,
+        avatarUrl:
+          payload.role === 'Trainer' ? PLATFORM_MEDIA.rahulAvatar : PLATFORM_MEDIA.priyaAvatar,
+        headline: payload.expertise || 'CodzSkill Member',
+      },
+    };
+    tokenStorage.set(response.token);
+    return response;
+  },
+
+  logout(): void {
+    tokenStorage.clear();
+  },
+};
+
+src/services/courseService.ts
+
+import apiClient from './apiClient';
+import { API_CONFIG } from './apiConfig';
+import { CohortDetails, Course } from '../types';
+import { MOCK_COHORT_DETAIL, MOCK_COURSES } from './mockData';
+
+export const courseService = {
+  async getCourses(): Promise<Course[]> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.get<Course[]>(API_CONFIG.endpoints.courses.list);
+      return data;
+    }
+    await new Promise((res) => setTimeout(res, 250));
+    return MOCK_COURSES;
+  },
+
+  async getCohortBySlug(slug: string): Promise<CohortDetails> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.get<CohortDetails>(
+        `${API_CONFIG.endpoints.courses.cohortBySlug}/${slug}`
+      );
+      return data;
+    }
+    await new Promise((res) => setTimeout(res, 250));
+    const matched = MOCK_COURSES.find((c) => c.slug === slug);
+    if (!matched) return MOCK_COHORT_DETAIL;
+    return {
+      ...MOCK_COHORT_DETAIL,
+      ...matched,
+      title: `${matched.title} – Live Cohort`,
+    };
+  },
+
+  async enrollInCohort(cohortId: string): Promise<{ enrollmentId: string; message: string }> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.post<{ enrollmentId: string; message: string }>(
+        API_CONFIG.endpoints.courses.enroll,
+        { cohortId }
+      );
+      return data;
+    }
+    await new Promise((res) => setTimeout(res, 400));
+    return {
+      enrollmentId: `ENR-${Math.floor(10000 + Math.random() * 90000)}`,
+      message: 'Successfully enrolled! Your seat and live lab access are confirmed.',
+    };
+  },
+};
+
+src/services/dashboardService.ts
+
+import apiClient from './apiClient';
+import { API_CONFIG } from './apiConfig';
+import { Course, LearnerDashboardData, TrainerDashboardData } from '../types';
+import { MOCK_LEARNER_DASHBOARD, MOCK_TRAINER_DASHBOARD } from './mockData';
+
+export const dashboardService = {
+  async getLearnerDashboard(): Promise<LearnerDashboardData> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.get<LearnerDashboardData>(
+        API_CONFIG.endpoints.dashboards.learner
+      );
+      return data;
+    }
+    await new Promise((res) => setTimeout(res, 250));
+    return MOCK_LEARNER_DASHBOARD;
+  },
+
+  async getTrainerDashboard(): Promise<TrainerDashboardData> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.get<TrainerDashboardData>(
+        API_CONFIG.endpoints.dashboards.trainer
+      );
+      return data;
+    }
+    await new Promise((res) => setTimeout(res, 250));
+    return MOCK_TRAINER_DASHBOARD;
+  },
+
+  async createTrainerCourse(newCourse: Partial<Course>): Promise<Course> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.post<Course>(API_CONFIG.endpoints.courses.list, newCourse);
+      return data;
+    }
+    await new Promise((res) => setTimeout(res, 350));
+    return {
+      id: `crs-${Date.now()}`,
+      slug: (newCourse.title || 'new-course').toLowerCase().replace(/\s+/g, '-'),
+      title: newCourse.title || 'Untitled Course',
+      subtitle: newCourse.subtitle || 'Hands-on industry cohort program.',
+      category: newCourse.category || 'Development',
+      badgeText: 'Live Cohort',
+      techTag: newCourse.techTag || '.NET',
+      gradientClass: 'from-violet-600 via-purple-600 to-indigo-700',
+      rating: 5.0,
+      reviewCount: 1,
+      durationWeeks: newCourse.durationWeeks || 6,
+      priceInr: newCourse.priceInr || 12999,
+      level: newCourse.level || 'Intermediate',
+      trainerName: 'Rahul Verma',
+      trainerTitle: 'Principal Architect',
+      learnersCount: 0,
+      status: 'Published',
+    };
+  },
+};
+
+src/services/corporateService.ts
+
+import apiClient from './apiClient';
+import { API_CONFIG } from './apiConfig';
+import { CorporateProposalRequest, CorporateProposalResponse } from '../types';
+
+export const corporateService = {
+  async submitProposal(
+    payload: CorporateProposalRequest
+  ): Promise<CorporateProposalResponse> {
+    if (!API_CONFIG.useMockData) {
+      const { data } = await apiClient.post<CorporateProposalResponse>(
+        API_CONFIG.endpoints.corporate.proposal,
+        payload
+      );
+      return data;
+    }
+    await new Promise((res) => setTimeout(res, 450));
+    return {
+      referenceId: `CORP-${Math.floor(100000 + Math.random() * 900000)}`,
+      message: `Thank you, ${payload.contactName}. Our Enterprise Solutions team will send a tailored curriculum proposal for ${payload.companyName} within 24 hours.`,
+    };
+  },
+};
+
+6. Auth Context & Custom Hooks
+
+src/context/AuthContext.tsx
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { AuthResponse, LoginRequest, RegisterRequest, User } from '../types';
+import { authService } from '../services/authService';
+import { tokenStorage } from '../services/apiClient';
+import { PLATFORM_MEDIA } from '../assets';
+
+interface AuthContextValue {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (payload: LoginRequest) => Promise<AuthResponse>;
+  register: (payload: RegisterRequest) => Promise<AuthResponse>;
+  switchDemoRole: (role: 'Learner' | 'Trainer') => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+const USER_STORAGE_KEY = 'codzskill_user';
+
+const DEFAULT_DEMO_LEARNER: User = {
+  id: 'usr-learner-1',
+  fullName: 'Priya Sharma',
+  email: 'priya.sharma@codzskill.dev',
+  role: 'Learner',
+  avatarUrl: PLATFORM_MEDIA.priyaAvatar,
+  headline: 'ASP.NET & React Learner',
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem(USER_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved) as User;
+      } catch {
+        return DEFAULT_DEMO_LEARNER;
+      }
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(USER_STORAGE_KEY);
+    }
+  }, [user]);
+
+  const login = async (payload: LoginRequest) => {
+    const res = await authService.login(payload);
+    setUser(res.user);
+    return res;
+  };
+
+  const register = async (payload: RegisterRequest) => {
+    const res = await authService.register(payload);
+    setUser(res.user);
+    return res;
+  };
+
+  const switchDemoRole = (role: 'Learner' | 'Trainer') => {
+    tokenStorage.set('mock.jwt.token.codzskill.labs');
+    if (role === 'Trainer') {
+      setUser({
+        id: 'usr-trainer-1',
+        fullName: 'Rahul Verma',
+        email: 'rahul.verma@codzskill.dev',
+        role: 'Trainer',
+        avatarUrl: PLATFORM_MEDIA.rahulAvatar,
+        headline: 'Principal .NET Architect',
+      });
+    } else {
+      setUser(DEFAULT_DEMO_LEARNER);
+    }
+  };
+
+  const logout = () => {
+    authService.logout();
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: Boolean(user),
+        login,
+        register,
+        switchDemoRole,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth must be used inside AuthProvider');
+  }
+  return ctx;
+}
+
+src/hooks/useAsync.ts
+
+import { useCallback, useEffect, useState } from 'react';
+import { ApiError } from '../services/apiClient';
+
+export function useAsync<T>(asyncFn: () => Promise<T>, immediate = true) {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState<boolean>(immediate);
+  const [error, setError] = useState<string | null>(null);
+
+  const execute = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await asyncFn();
+      setData(result);
+      return result;
+    } catch (err) {
+      const apiErr = err as ApiError;
+      setError(apiErr?.message || 'Failed to load data.');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [asyncFn]);
+
+  useEffect(() => {
+    if (immediate) {
+      void execute();
+    }
+  }, [execute, immediate]);
+
+  return { data, setData, loading, error, refetch: execute };
+}
+
+7. Reusable Components (src/components/common/)
+
+src/components/common/Logo.tsx
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { cn } from '../../utils/formatters';
+
+interface LogoProps {
+  theme?: 'dark' | 'light';
+  className?: string;
+}
+
+export const Logo: React.FC<LogoProps> = ({ theme = 'dark', className }) => {
+  return (
+    <Link to="/" className={cn('inline-flex items-center gap-2.5 select-none', className)}>
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30 font-mono text-xs font-bold tracking-tighter">
+        &lt;+&gt;
+      </span>
+      <span className="text-lg font-bold tracking-tight">
+        <span className={theme === 'dark' ? 'text-white' : 'text-slate-900'}>Codzskill</span>{' '}
+        <span className={theme === 'dark' ? 'text-violet-300 font-medium' : 'text-violet-600 font-medium'}>
+          Labs
+        </span>
+      </span>
+    </Link>
+  );
+};
+
+src/components/common/Button.tsx
+
+import React from 'react';
+import { cn } from '../../utils/formatters';
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
+}
+
+export const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  className,
+  children,
+  disabled,
+  ...props
+}) => {
+  const variants = {
+    primary:
+      'bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-sm shadow-violet-600/25',
+    secondary: 'bg-slate-900 text-white hover:bg-slate-800',
+    outline:
+      'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
+    ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+    danger: 'bg-rose-600 text-white hover:bg-rose-500',
+  };
+
+  const sizes = {
+    sm: 'px-3 py-1.5 text-xs rounded-lg',
+    md: 'px-4 py-2.5 text-sm rounded-lg',
+    lg: 'px-6 py-3 text-sm rounded-xl',
+  };
+
+  return (
+    <button
+      disabled={disabled || loading}
+      className={cn(
+        'inline-flex items-center justify-center gap-2 font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-violet-500/40 disabled:opacity-60 disabled:cursor-not-allowed',
+        variants[variant],
+        sizes[size],
+        className
+      )}
+      {...props}
+    >
+      {loading && (
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      )}
+      {children}
+    </button>
+  );
+};
+
+src/components/common/Badge.tsx
+
+import React from 'react';
+import { cn } from '../../utils/formatters';
+
+interface BadgeProps {
+  children: React.ReactNode;
+  variant?: 'purple' | 'emerald' | 'amber' | 'slate' | 'rose';
+  className?: string;
+}
+
+export const Badge: React.FC<BadgeProps> = ({
+  children,
+  variant = 'purple',
+  className,
+}) => {
+  const styles = {
+    purple: 'bg-violet-50 text-violet-700 border-violet-200',
+    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    amber: 'bg-amber-50 text-amber-700 border-amber-200',
+    slate: 'bg-slate-100 text-slate-700 border-slate-200',
+    rose: 'bg-rose-50 text-rose-700 border-rose-200',
+  };
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium',
+        styles[variant],
+        className
+      )}
+    >
+      {children}
+    </span>
+  );
+};
+
+src/components/common/Card.tsx
+
+import React from 'react';
+import { cn } from '../../utils/formatters';
+
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}
+
+export const Card: React.FC<CardProps> = ({ children, className, onClick }) => {
+  return (
+    <div
+      onClick={onClick}
+      className={cn(
+        'rounded-2xl border border-slate-200/80 bg-white shadow-sm',
+        onClick && 'cursor-pointer transition hover:shadow-md hover:border-violet-200',
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+src/components/common/StatCard.tsx
+
+import React from 'react';
+import { cn } from '../../utils/formatters';
+
+interface StatCardProps {
+  value: string | number;
+  label: string;
+  accent?: 'blue' | 'indigo' | 'amber' | 'violet' | 'emerald';
+}
+
+export const StatCard: React.FC<StatCardProps> = ({
+  value,
+  label,
+  accent = 'violet',
+}) => {
+  const accentColors = {
+    blue: 'text-blue-600 bg-gradient-to-br from-blue-50/70 to-white',
+    indigo: 'text-indigo-600 bg-gradient-to-br from-indigo-50/70 to-white',
+    amber: 'text-amber-600 bg-gradient-to-br from-amber-50/70 to-white',
+    violet: 'text-violet-600 bg-gradient-to-br from-violet-50/70 to-white',
+    emerald: 'text-emerald-600 bg-gradient-to-br from-emerald-50/70 to-white',
+  };
+
+  return (
+    <div
+      className={cn(
+        'rounded-2xl border border-slate-200/80 p-5 shadow-sm',
+        accentColors[accent]
+      )}
+    >
+      <p className="text-2xl sm:text-3xl font-bold tracking-tight">{value}</p>
+      <p className="mt-1 text-sm font-medium text-slate-600">{label}</p>
+    </div>
+  );
+};
+
+src/components/common/Modal.tsx
+
+import React from 'react';
+import { X } from 'lucide-react';
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Close modal"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-6">{children}</div>
+      </div>
+    </div>
+  );
+};
+
+src/components/common/CourseCard.tsx
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Clock, Star } from 'lucide-react';
+import { Course } from '../../types';
+import { formatInr } from '../../utils/formatters';
+
+interface CourseCardProps {
+  course: Course;
+}
+
+export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+  return (
+    <Link
+      to={`/cohorts/${course.slug}`}
+      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg"
+    >
+      <div
+        className={`relative flex h-40 items-center justify-between bg-gradient-to-br ${course.gradientClass} p-5 text-white`}
+      >
+        <div className="flex h-14 w-20 items-center justify-center rounded-xl border border-white/25 bg-white/10 backdrop-blur-md font-bold text-lg tracking-tight shadow-inner">
+          {course.techTag}
+        </div>
+        <span className="self-start rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm">
+          {course.badgeText}
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-between p-5">
+        <div>
+          <h3 className="text-base font-bold text-slate-900 group-hover:text-violet-700 transition-colors line-clamp-2">
+            {course.title}
+          </h3>
+          <p className="mt-1.5 text-xs text-slate-500 line-clamp-2">
+            {course.subtitle}
+          </p>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between text-xs text-slate-600">
+            <span className="inline-flex items-center gap-1 font-semibold text-slate-800">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              {course.rating.toFixed(1)}{' '}
+              <span className="font-normal text-slate-400">
+                ({course.reviewCount.toLocaleString()})
+              </span>
+            </span>
+            <span className="inline-flex items-center gap-1 text-slate-500">
+              <Clock className="h-3.5 w-3.5" />
+              {course.durationWeeks} Weeks
+            </span>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-lg font-bold text-slate-900">
+              {formatInr(course.priceInr)}
+            </span>
+            <span className="text-xs font-semibold text-violet-600 group-hover:underline">
+              View Cohort &rarr;
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+src/components/common/Navbar.tsx
+
+import React, { useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { ChevronDown, Menu, Search, X } from 'lucide-react';
+import { Logo } from './Logo';
+import { useAuth } from '../../context/AuthContext';
+import { cn } from '../../utils/formatters';
+
+interface NavbarProps {
+  variant?: 'dark' | 'light';
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ variant = 'dark' }) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/courses?q=${encodeURIComponent(query.trim())}`);
+      setSearchOpen(false);
+    }
+  };
+
+  const isDark = variant === 'dark';
+
+  const navItems = [
+    { label: 'Learn', to: '/courses', hasDropdown: true },
+    { label: 'Train', to: '/trainer/dashboard', hasDropdown: true },
+    { label: 'For Business', to: '/corporate', hasDropdown: true },
+    { label: 'Labs', to: '/live-class', hasDropdown: true },
+    { label: 'Community', to: '/join', hasDropdown: false },
+  ];
+
+  const dashboardRoute =
+    user?.role === 'Trainer' ? '/trainer/dashboard' : '/learner/dashboard';
+
+  return (
+    <header
+      className={cn(
+        'sticky top-0 z-40 border-b backdrop-blur-md transition-colors',
+        isDark
+          ? 'border-white/10 bg-[#080D1F]/90 text-white'
+          : 'border-slate-200 bg-white/95 text-slate-900'
+      )}
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-8">
+          <Logo theme={isDark ? 'dark' : 'light'} />
+
+          <nav className="hidden lg:flex items-center gap-6">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    'inline-flex items-center gap-1 text-sm font-medium transition-colors',
+                    isDark
+                      ? isActive
+                        ? 'text-violet-300'
+                        : 'text-slate-300 hover:text-white'
+                      : isActive
+                        ? 'text-violet-700'
+                        : 'text-slate-600 hover:text-slate-950'
+                  )
+                }
+              >
+                {item.label}
+                {item.hasDropdown && <ChevronDown className="h-3.5 w-3.5 opacity-70" />}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {searchOpen ? (
+            <form onSubmit={handleSearch} className="hidden sm:flex items-center">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search .NET, React, AI..."
+                className={cn(
+                  'w-48 rounded-lg border px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500',
+                  isDark
+                    ? 'border-white/20 bg-white/10 text-white placeholder:text-slate-400'
+                    : 'border-slate-300 bg-slate-50 text-slate-900'
+                )}
+                autoFocus
+              />
+            </form>
+          ) : null}
+
+          <button
+            onClick={() => setSearchOpen((prev) => !prev)}
+            className={cn(
+              'rounded-lg p-2 transition-colors',
+              isDark ? 'text-slate-300 hover:bg-white/10 hover:text-white' : 'text-slate-600 hover:bg-slate-100'
+            )}
+            aria-label="Search courses"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+
+          {isAuthenticated ? (
+            <Link
+              to={dashboardRoute}
+              className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-violet-500 hover:to-indigo-500"
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={cn(
+                  'hidden sm:inline-flex rounded-lg border px-4 py-1.5 text-sm font-medium transition-colors',
+                  isDark
+                    ? 'border-white/25 text-white hover:bg-white/10'
+                    : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                )}
+              >
+                Login
+              </Link>
+              <Link
+                to="/join"
+                className="hidden sm:inline-flex rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1.5 text-sm font-semibold text-white shadow-md shadow-violet-600/25 hover:from-violet-500 hover:to-indigo-500"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
+
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="rounded-lg p-2 lg:hidden"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div
+          className={cn(
+            'border-t px-4 py-4 lg:hidden space-y-3',
+            isDark ? 'border-white/10 bg-[#0A1026]' : 'border-slate-200 bg-white'
+          )}
+        >
+          {navItems.map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                'block rounded-lg px-3 py-2 text-sm font-medium',
+                isDark ? 'text-slate-200 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'
+              )}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <div className="flex gap-2 pt-2">
+            <Link
+              to="/login"
+              onClick={() => setMobileOpen(false)}
+              className="flex-1 rounded-lg border border-violet-400/40 px-3 py-2 text-center text-sm font-medium"
+            >
+              Login
+            </Link>
+            <Link
+              to="/join"
+              onClick={() => setMobileOpen(false)}
+              className="flex-1 rounded-lg bg-violet-600 px-3 py-2 text-center text-sm font-semibold text-white"
+            >
+              Get Started
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
+
+src/components/common/Footer.tsx
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Logo } from './Logo';
+
+export const Footer: React.FC = () => {
+  return (
+    <footer className="border-t border-white/10 bg-[#070B19] text-slate-400">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+          <div className="space-y-4">
+            <Logo theme="dark" />
+            <p className="text-sm leading-relaxed text-slate-400">
+              A global learning and trainer marketplace for technology, professional, and industry skills.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-semibold text-white">Platform</h4>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li><Link to="/courses" className="hover:text-violet-300">Explore Courses</Link></li>
+              <li><Link to="/cohorts/aspnet-core-full-stack-cohort" className="hover:text-violet-300">Live Cohorts</Link></li>
+              <li><Link to="/live-class" className="hover:text-violet-300">Hands-on Live Labs</Link></li>
+              <li><Link to="/corporate" className="hover:text-violet-300">Corporate Training</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-semibold text-white">Dashboards</h4>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li><Link to="/learner/dashboard" className="hover:text-violet-300">Learner Dashboard</Link></li>
+              <li><Link to="/trainer/dashboard" className="hover:text-violet-300">Trainer Dashboard</Link></li>
+              <li><Link to="/register/trainer" className="hover:text-violet-300">Join as a Trainer</Link></li>
+              <li><Link to="/register/learner" className="hover:text-violet-300">Register as Learner</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-semibold text-white">Enterprise Ready</h4>
+            <p className="mt-4 text-sm text-slate-400">
+              Powered by ASP.NET Core 10 & React architecture for high-scale enterprise cohorts.
+            </p>
+            <Link
+              to="/corporate"
+              className="mt-4 inline-block rounded-lg border border-violet-500/40 bg-violet-500/10 px-4 py-2 text-xs font-semibold text-violet-300 hover:bg-violet-500/20"
+            >
+              Request Enterprise Proposal &rarr;
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs sm:flex-row">
+          <p>&copy; {new Date().getFullYear()} CodzSkill Labs. All rights reserved.</p>
+          <div className="flex gap-6">
+            <Link to="/courses" className="hover:text-white">Privacy Policy</Link>
+            <Link to="/courses" className="hover:text-white">Terms of Service</Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+8. Layouts (src/layouts/)
+
+src/layouts/PublicLayout.tsx
+
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import { Navbar } from '../components/common/Navbar';
+import { Footer } from '../components/common/Footer';
+
+interface PublicLayoutProps {
+  navbarVariant?: 'dark' | 'light';
+}
+
+export const PublicLayout: React.FC<PublicLayoutProps> = ({
+  navbarVariant = 'dark',
+}) => {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar variant={navbarVariant} />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+src/layouts/DashboardLayout.tsx
+
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Bell,
+  Briefcase,
+  Calendar,
+  Award,
+  FileText,
+  FolderGit2,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Search,
+  Settings,
+  Star,
+  Users,
+  Video,
+  Wallet,
+  BookOpen,
+  X,
+} from 'lucide-react';
+import { Logo } from '../components/common/Logo';
+import { useAuth } from '../context/AuthContext';
+import { cn } from '../utils/formatters';
+import { PLATFORM_MEDIA } from '../assets';
+
+interface SidebarItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  to?: string;
+}
+
+interface DashboardLayoutProps {
+  role: 'Learner' | 'Trainer';
+  activeSection: string;
+  onSelectSection: (sectionId: string) => void;
+  pageTitle: string;
+  searchQuery?: string;
+  onSearchChange?: (value: string) => void;
+  children: React.ReactNode;
+}
+
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
+  role,
+  activeSection,
+  onSelectSection,
+  pageTitle,
+  searchQuery = '',
+  onSearchChange,
+  children,
+}) => {
+  const [mobileSidebar, setMobileSidebar] = useState(false);
+  const { user, switchDemoRole, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const learnerItems: SidebarItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { id: 'learning', label: 'My Learning', icon: <BookOpen className="h-4 w-4" /> },
+    { id: 'live', label: 'Live Classes', icon: <Video className="h-4 w-4" />, to: '/live-class' },
+    { id: 'bookings', label: 'Bookings (1:1)', icon: <Calendar className="h-4 w-4" /> },
+    { id: 'assignments', label: 'Assignments', icon: <FileText className="h-4 w-4" /> },
+    { id: 'projects', label: 'Projects & Labs', icon: <FolderGit2 className="h-4 w-4" /> },
+    { id: 'certificates', label: 'Certificates', icon: <Award className="h-4 w-4" /> },
+    { id: 'career', label: 'Career Hub', icon: <Briefcase className="h-4 w-4" /> },
+    { id: 'messages', label: 'Messages', icon: <MessageSquare className="h-4 w-4" /> },
+    { id: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
+  ];
+
+  const trainerItems: SidebarItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { id: 'courses', label: 'My Courses', icon: <BookOpen className="h-4 w-4" /> },
+    { id: 'cohorts', label: 'Cohorts & Batches', icon: <Users className="h-4 w-4" /> },
+    { id: 'sessions', label: '1:1 Sessions', icon: <Video className="h-4 w-4" />, to: '/live-class' },
+    { id: 'learners', label: 'Learners', icon: <Users className="h-4 w-4" /> },
+    { id: 'earnings', label: 'Earnings', icon: <Wallet className="h-4 w-4" /> },
+    { id: 'reviews', label: 'Reviews', icon: <Star className="h-4 w-4" /> },
+    { id: 'resources', label: 'Resources', icon: <FolderGit2 className="h-4 w-4" /> },
+    { id: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
+  ];
+
+  const items = role === 'Learner' ? learnerItems : trainerItems;
+  const displayName =
+    user?.fullName || (role === 'Learner' ? 'Priya Sharma' : 'Rahul Verma');
+  const avatar =
+    user?.avatarUrl ||
+    (role === 'Learner' ? PLATFORM_MEDIA.priyaAvatar : PLATFORM_MEDIA.rahulAvatar);
+
+  const handleToggleRole = () => {
+    const nextRole = role === 'Learner' ? 'Trainer' : 'Learner';
+    switchDemoRole(nextRole);
+    navigate(nextRole === 'Trainer' ? '/trainer/dashboard' : '/learner/dashboard');
+  };
+
+  const SidebarContent = (
+    <div className="flex h-full flex-col bg-[#0D132B] text-slate-300">
+      <div className="flex h-16 items-center justify-between px-5 border-b border-white/10">
+        <Logo theme="dark" />
+        <button
+          onClick={() => setMobileSidebar(false)}
+          className="lg:hidden text-slate-400 hover:text-white"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        {items.map((item) => {
+          const isActive = activeSection === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.to && location.pathname !== item.to) {
+                  navigate(item.to);
+                } else {
+                  onSelectSection(item.id);
+                }
+                setMobileSidebar(false);
+              }}
+              className={cn(
+                'flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all',
+                isActive
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/25'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+              )}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="border-t border-white/10 p-3 space-y-2">
+        <button
+          onClick={handleToggleRole}
+          className="w-full rounded-xl border border-violet-400/30 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-200 hover:bg-violet-500/20"
+        >
+          Switch to {role === 'Learner' ? 'Trainer' : 'Learner'} View
+        </button>
+        <div className="flex items-center justify-between px-2 pt-1">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white"
+          >
+            <Home className="h-3.5 w-3.5" /> Public Home
+          </Link>
+          <button
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            className="inline-flex items-center gap-1 text-xs text-rose-300 hover:text-rose-200"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-[#F5F7FB]">
+      {/* Desktop Sidebar */}
+      <aside className="hidden w-64 shrink-0 lg:block">{SidebarContent}</aside>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebar && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div className="w-64">{SidebarContent}</div>
+          <div
+            className="flex-1 bg-slate-950/60"
+            onClick={() => setMobileSidebar(false)}
+          />
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col min-w-0">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileSidebar(true)}
+              className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <Link
+              to="/"
+              className="hidden sm:inline-flex items-center rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              title="Back to Home"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <h1 className="text-lg font-bold text-slate-900 sm:hidden">{pageTitle}</h1>
+          </div>
+
+          <div className="hidden md:flex flex-1 max-w-md mx-6">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                placeholder="Search courses, trainers, skills..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-violet-400 focus:bg-white focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100"
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-violet-600" />
+            </button>
+            <div className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 py-1 pl-1.5 pr-3">
+              <img
+                src={avatar}
+                alt={displayName}
+                className="h-7 w-7 rounded-full object-cover"
+              />
+              <span className="hidden sm:inline text-sm font-medium text-slate-800">
+                {displayName}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
+    </div>
+  );
+};
+
+9. Page 1: Public Landing Page (src/pages/LandingPage.tsx)
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  Award,
+  Brain,
+  Cloud,
+  Code2,
+  Cpu,
+  FlaskConical,
+  Layers,
+  Palette,
+  TrendingUp,
+  UserCheck,
+  Users,
+  Video,
+} from 'lucide-react';
+import { CourseCard } from '../components/common/CourseCard';
+import { MOCK_COURSES } from '../services/mockData';
+import { PLATFORM_MEDIA } from '../assets';
+
+export const LandingPage: React.FC = () => {
+  const highlights = [
+    { icon: <UserCheck className="h-4 w-4 text-cyan-400" />, label: 'One-to-One Training' },
+    { icon: <Users className="h-4 w-4 text-violet-400" />, label: 'Cohort Programs' },
+    { icon: <Video className="h-4 w-4 text-fuchsia-400" />, label: 'Live Classes' },
+    { icon: <FlaskConical className="h-4 w-4 text-indigo-400" />, label: 'Hands-on Labs' },
+    { icon: <Award className="h-4 w-4 text-amber-400" />, label: 'Certifications & Career Support' },
+  ];
+
+  const stats = [
+    { value: '50K+', label: 'Learners' },
+    { value: '2K+', label: 'Trainers' },
+    { value: '500+', label: 'Live Cohorts' },
+    { value: '100+', label: 'Corporate Clients' },
+  ];
+
+  const categories = [
+    { name: 'Development', count: '140+ Courses', icon: <Code2 className="h-5 w-5 text-violet-600" /> },
+    { name: 'AI & Data', count: '85+ Courses', icon: <Brain className="h-5 w-5 text-indigo-600" /> },
+    { name: 'Cloud & DevOps', count: '60+ Courses', icon: <Cloud className="h-5 w-5 text-sky-600" /> },
+    { name: 'Business', count: '45+ Courses', icon: <TrendingUp className="h-5 w-5 text-emerald-600" /> },
+    { name: 'Design', count: '38+ Courses', icon: <Palette className="h-5 w-5 text-fuchsia-600" /> },
+    { name: 'Architecture', count: '52+ Courses', icon: <Layers className="h-5 w-5 text-amber-600" /> },
+  ];
+
+  return (
+    <div>
+      {/* Hero Section matching CodzSkill Labs reference */}
+      <section className="hero-mesh relative overflow-hidden text-white">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+          <div className="grid items-center gap-12 lg:grid-cols-12">
+            {/* Left Column */}
+            <div className="lg:col-span-7 space-y-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
+                CODZSKILL LABS
+              </p>
+
+              <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-[52px] lg:leading-[1.12]">
+                Learn, Build, Practice <br className="hidden sm:block" />
+                and Grow Your Career
+              </h1>
+
+              <p className="max-w-xl text-base sm:text-lg text-slate-300 leading-relaxed">
+                A global learning and trainer marketplace for technology, professional and industry skills.
+              </p>
+
+              {/* 5 Feature Pills */}
+              <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-5">
+                {highlights.map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex flex-col items-center justify-center rounded-xl border border-white/10 bg-white/5 px-2.5 py-3 text-center backdrop-blur-sm"
+                  >
+                    <div className="mb-1.5 flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+                      {item.icon}
+                    </div>
+                    <span className="text-[11px] font-medium leading-tight text-slate-200">
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <Link
+                  to="/courses"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-600/30 hover:from-violet-500 hover:to-indigo-500 transition-all"
+                >
+                  Explore Courses <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/register/trainer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-all"
+                >
+                  Join as a Trainer
+                </Link>
+              </div>
+
+              {/* Platform Statistics */}
+              <div className="grid grid-cols-2 gap-6 border-t border-white/10 pt-7 sm:grid-cols-4">
+                {stats.map((stat) => (
+                  <div key={stat.label}>
+                    <p className="text-2xl font-extrabold text-white">{stat.value}</p>
+                    <p className="text-xs font-medium text-slate-400">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Visual Column with Floating Tech Badges */}
+            <div className="relative lg:col-span-5 flex justify-center">
+              <div className="relative w-full max-w-md">
+                <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-violet-600/30 to-indigo-500/20 blur-2xl" />
+                <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-navy-800/80 shadow-2xl">
+                  <img
+                    src={PLATFORM_MEDIA.heroStudent}
+                    alt="CodzSkill Labs Learner"
+                    className="h-[380px] w-full object-cover object-top"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070B19] via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-white/15 bg-slate-900/85 p-3.5 backdrop-blur-md flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600 font-mono text-xs font-bold">
+                        &lt;+&gt;
+                      </span>
+                      <div>
+                        <p className="text-xs font-bold text-white">Codzskill Labs IDE</p>
+                        <p className="text-[11px] text-violet-300">Live ASP.NET & React Sandbox</p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/live-class"
+                      className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-500"
+                    >
+                      Try Live
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Floating Skill Pills */}
+                <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md absolute -left-8 top-8">
+                  <Code2 className="h-4 w-4 text-violet-400" />
+                  ASP.NET Core
+                </div>
+                <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md absolute -left-10 top-24">
+                  <Cpu className="h-4 w-4 text-cyan-400" />
+                  React
+                </div>
+                <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md absolute -left-8 top-40">
+                  <Brain className="h-4 w-4 text-fuchsia-400" />
+                  AI / ML
+                </div>
+                <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-white shadow-xl backdrop-blur-md absolute -left-12 top-56">
+                  <Cloud className="h-4 w-4 text-sky-400" />
+                  Cloud &amp; DevOps
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Learning Categories */}
+      <section className="bg-white py-14 border-b border-slate-200/70">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
+                Learning Categories
+              </p>
+              <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
+                Master In-Demand Technology Domains
+              </h2>
+            </div>
+            <Link
+              to="/courses"
+              className="text-sm font-semibold text-violet-600 hover:text-violet-700"
+            >
+              Browse All Categories &rarr;
+            </Link>
+          </div>
+
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {categories.map((cat) => (
+              <Link
+                key={cat.name}
+                to={`/courses?category=${encodeURIComponent(cat.name)}`}
+                className="group rounded-2xl border border-slate-200 bg-slate-50/60 p-4 transition-all hover:border-violet-300 hover:bg-white hover:shadow-md"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm group-hover:bg-violet-50">
+                  {cat.icon}
+                </div>
+                <h3 className="mt-3 text-sm font-bold text-slate-900">{cat.name}</h3>
+                <p className="mt-0.5 text-xs text-slate-500">{cat.count}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Courses */}
+      <section className="bg-slate-50 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
+                Featured Live Cohorts
+              </p>
+              <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
+                Learn with Industry Practitioners
+              </h2>
+            </div>
+            <Link
+              to="/courses"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              View All Courses <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {MOCK_COURSES.slice(0, 3).map((course) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Role & Corporate Banner */}
+      <section className="bg-white py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-3xl bg-gradient-to-br from-navy-900 to-violet-950 p-8 text-white shadow-xl">
+              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-violet-200">
+                For Individuals &amp; Trainers
+              </span>
+              <h3 className="mt-4 text-2xl font-bold">
+                Experience Interactive Dashboards &amp; Live IDE Classes
+              </h3>
+              <p className="mt-2 text-sm text-slate-300">
+                Jump straight into the Learner Portal, Trainer Analytics, or our Real-time ASP.NET Core Live Classroom.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  to="/learner/dashboard"
+                  className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-500"
+                >
+                  Learner Dashboard
+                </Link>
+                <Link
+                  to="/trainer/dashboard"
+                  className="rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+                >
+                  Trainer Dashboard
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50 p-8">
+              <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
+                For Enterprises
+              </span>
+              <h3 className="mt-4 text-2xl font-bold text-slate-900">
+                Corporate Upskilling Tailored to Your Stack
+              </h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Custom .NET, Cloud, and GenAI bootcamps delivered online, on-site, or hybrid with measurable skill assessments.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  to="/corporate"
+                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                >
+                  Explore Corporate Training &rarr;
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+10. Page 2: Learner Dashboard (src/pages/learner/LearnerDashboardPage.tsx)
+
+import React, { useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Award, Calendar, CheckCircle2, FileText, Laptop } from 'lucide-react';
+import { DashboardLayout } from '../../layouts/DashboardLayout';
+import { StatCard } from '../../components/common/StatCard';
+import { Card } from '../../components/common/Card';
+import { Badge } from '../../components/common/Badge';
+import { Button } from '../../components/common/Button';
+import { useAsync } from '../../hooks/useAsync';
+import { dashboardService } from '../../services/dashboardService';
+import { useAuth } from '../../context/AuthContext';
+
+export const LearnerDashboardPage: React.FC = () => {
+  const [section, setSection] = useState('dashboard');
+  const [search, setSearch] = useState('');
+  const [submittedIds, setSubmittedIds] = useState<string[]>([]);
+  const { user } = useAuth();
+
+  const fetchDashboard = useCallback(() => dashboardService.getLearnerDashboard(), []);
+  const { data, loading, error } = useAsync(fetchDashboard);
+
+  const firstName = (user?.fullName || 'Priya Sharma').split(' ')[0];
+
+  const handleCompleteAssignment = (id: string) => {
+    setSubmittedIds((prev) => [...prev, id]);
+  };
+
+  return (
+    <DashboardLayout
+      role="Learner"
+      activeSection={section}
+      onSelectSection={setSection}
+      pageTitle="Learner Dashboard"
+      searchQuery={search}
+      onSearchChange={setSearch}
+    >
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="hidden sm:block text-2xl font-bold text-slate-900">
+            Learner Dashboard
+          </h1>
+          <Link
+            to="/courses"
+            className="text-sm font-semibold text-violet-600 hover:text-violet-700"
+          >
+            + Browse More Courses
+          </Link>
+        </div>
+
+        {/* Welcome Banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 p-6 sm:p-8 text-white shadow-lg shadow-violet-600/20">
+          <div className="relative z-10 max-w-xl">
+            <h2 className="text-2xl sm:text-3xl font-bold">
+              Welcome back, {firstName}! 👋
+            </h2>
+            <p className="mt-1.5 text-sm sm:text-base text-violet-100">
+              Continue learning and build your skills.
+            </p>
+          </div>
+          <div className="hidden md:flex absolute right-8 top-1/2 -translate-y-1/2 items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-md">
+            <Laptop className="h-10 w-10 text-violet-100" />
+            <div>
+              <p className="text-xs font-semibold text-violet-200">Next Live Lab</p>
+              <p className="text-sm font-bold">ASP.NET Core APIs • 7:00 PM</p>
+            </div>
+          </div>
+        </div>
+
+        {loading && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+            Loading your learning workspace...
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            {error}
+          </div>
+        )}
+
+        {data && (
+          <>
+            {/* 4 Stat Cards */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <StatCard value={data.activeCoursesCount} label="Active Courses" accent="blue" />
+              <StatCard value={data.liveSessionsCount} label="Live Sessions" accent="indigo" />
+              <StatCard
+                value={Math.max(0, data.assignmentsDueCount - submittedIds.length)}
+                label="Assignments Due"
+                accent="amber"
+              />
+              <StatCard value={data.certificatesCount} label="Certificates" accent="violet" />
+            </div>
+
+            {/* Continue Learning + Upcoming Sessions */}
+            {(section === 'dashboard' || section === 'learning') && (
+              <div className="grid gap-6 lg:grid-cols-12">
+                <div className="lg:col-span-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-slate-900">Continue Learning</h3>
+                    <button
+                      onClick={() => setSection('learning')}
+                      className="text-xs font-semibold text-violet-600 hover:underline"
+                    >
+                      View All
+                    </button>
+                  </div>
+
+                  {data.continueLearning
+                    .filter((c) =>
+                      c.title.toLowerCase().includes(search.toLowerCase())
+                    )
+                    .map((course) => (
+                      <Card key={course.id} className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`flex h-16 w-20 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${course.gradientClass} text-white font-bold text-sm shadow-sm`}
+                          >
+                            {course.techTag}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-slate-900 line-clamp-2">
+                              {course.title}
+                            </h4>
+                            <div className="mt-3 flex items-center gap-3">
+                              <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                <div
+                                  className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-600"
+                                  style={{ width: `${course.progressPercent ?? 50}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-bold text-slate-700">
+                                {course.progressPercent ?? 50}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Link to={`/cohorts/${course.slug}`} className="mt-4 block">
+                          <Button variant="outline" className="w-full">
+                            Continue
+                          </Button>
+                        </Link>
+                      </Card>
+                    ))}
+                </div>
+
+                {/* Upcoming Sessions */}
+                <div className="lg:col-span-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-slate-900">Upcoming Sessions</h3>
+                    <Link
+                      to="/live-class"
+                      className="text-xs font-semibold text-violet-600 hover:underline"
+                    >
+                      View All
+                    </Link>
+                  </div>
+
+                  <Card className="divide-y divide-slate-100">
+                    {data.upcomingSessions.map((sess) => (
+                      <div
+                        key={sess.id}
+                        className="flex items-center justify-between gap-4 p-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+                            <Calendar className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-slate-500">
+                              {sess.scheduleText}
+                            </p>
+                            <p className="text-sm font-semibold text-slate-900">
+                              {sess.title}
+                            </p>
+                          </div>
+                        </div>
+                        <Link to="/live-class">
+                          <Button size="sm">Join</Button>
+                        </Link>
+                      </div>
+                    ))}
+                  </Card>
+
+                  {/* Assignments Preview */}
+                  <h3 className="pt-2 text-lg font-bold text-slate-900">
+                    Assignments &amp; Deliverables
+                  </h3>
+                  <Card className="divide-y divide-slate-100">
+                    {data.assignments.map((asg) => {
+                      const isDone =
+                        asg.status !== 'Pending' || submittedIds.includes(asg.id);
+                      return (
+                        <div
+                          key={asg.id}
+                          className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div className="flex items-start gap-3">
+                            <FileText className="mt-0.5 h-4 w-4 text-violet-600 shrink-0" />
+                            <div>
+                              <p className="text-sm font-semibold text-slate-900">
+                                {asg.title}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {asg.courseTitle} • Due: {asg.dueDate}
+                              </p>
+                            </div>
+                          </div>
+                          {isDone ? (
+                            <Badge variant="emerald">
+                              <CheckCircle2 className="mr-1 h-3 w-3" /> Submitted
+                            </Badge>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCompleteAssignment(asg.id)}
+                            >
+                              Mark Done
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {/* Certificates Section */}
+            {(section === 'dashboard' || section === 'certificates') && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-slate-900">Earned Certificates</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {data.certificates.map((cert) => (
+                    <Card key={cert.id} className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                          <Award className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">{cert.title}</p>
+                          <p className="text-xs text-slate-500">
+                            Issued {cert.issuedDate} • ID: {cert.credentialCode}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="purple">Verified</Badge>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+};
+
+11. Page 3: Trainer Dashboard (src/pages/trainer/TrainerDashboardPage.tsx)
+
+import React, { useCallback, useState } from 'react';
+import { MoreHorizontal, Plus, Star, Users } from 'lucide-react';
+import { DashboardLayout } from '../../layouts/DashboardLayout';
+import { StatCard } from '../../components/common/StatCard';
+import { Card } from '../../components/common/Card';
+import { Badge } from '../../components/common/Badge';
+import { Button } from '../../components/common/Button';
+import { Modal } from '../../components/common/Modal';
+import { useAsync } from '../../hooks/useAsync';
+import { dashboardService } from '../../services/dashboardService';
+import { formatInr } from '../../utils/formatters';
+import { CourseCategory } from '../../types';
+
+export const TrainerDashboardPage: React.FC = () => {
+  const [section, setSection] = useState('dashboard');
+  const [search, setSearch] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<Exclude<CourseCategory, 'All'>>('Development');
+  const [techTag, setTechTag] = useState('.NET');
+  const [priceInr, setPriceInr] = useState('14999');
+  const [formError, setFormError] = useState('');
+
+  const fetchTrainerData = useCallback(() => dashboardService.getTrainerDashboard(), []);
+  const { data, setData, loading, error } = useAsync(fetchTrainerData);
+
+  const handleCreateCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.trim().length < 4) {
+      setFormError('Course title must be at least 4 characters.');
+      return;
+    }
+    setFormError('');
+    setCreating(true);
+    try {
+      const created = await dashboardService.createTrainerCourse({
+        title: title.trim(),
+        category,
+        techTag,
+        priceInr: Number(priceInr) || 12999,
+      });
+      if (data) {
+        setData({
+          ...data,
+          publishedCoursesCount: data.publishedCoursesCount + 1,
+          courses: [created, ...data.courses],
+        });
+      }
+      setTitle('');
+      setCreateOpen(false);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <DashboardLayout
+      role="Trainer"
+      activeSection={section}
+      onSelectSection={setSection}
+      pageTitle="Trainer Dashboard"
+      searchQuery={search}
+      onSearchChange={setSearch}
+    >
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="hidden sm:block text-2xl font-bold text-slate-900">
+            Trainer Dashboard
+          </h1>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4" /> Create Course
+          </Button>
+        </div>
+
+        {loading && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+            Loading trainer analytics...
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            {error}
+          </div>
+        )}
+
+        {data && (
+          <>
+            {/* 4 Stat Cards matching screenshot */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <StatCard
+                value={data.publishedCoursesCount}
+                label="Published Courses"
+                accent="blue"
+              />
+              <StatCard
+                value={data.activeCohortsCount}
+                label="Active Cohorts"
+                accent="indigo"
+              />
+              <StatCard
+                value={data.oneOnOneSessionsCount}
+                label="1:1 Sessions (This Month)"
+                accent="violet"
+              />
+              <StatCard
+                value={formatInr(data.totalEarningsInr)}
+                label="Total Earnings"
+                accent="emerald"
+              />
+            </div>
+
+            {/* My Courses Management */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-slate-900">My Courses</h2>
+                <span className="text-xs text-slate-500">
+                  {data.courses.length} active programs
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {data.courses
+                  .filter((c) => c.title.toLowerCase().includes(search.toLowerCase()))
+                  .map((course) => (
+                    <Card
+                      key={course.id}
+                      className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`flex h-14 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${course.gradientClass} text-white font-bold text-sm`}
+                        >
+                          {course.techTag}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-900">{course.title}</h3>
+                          <p className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                            <span>{course.learnersCount} Learners</span>
+                            <span>•</span>
+                            <span className="inline-flex items-center gap-1 font-semibold text-slate-700">
+                              {course.rating.toFixed(1)}
+                              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3">
+                        <Badge variant="emerald">{course.status || 'Published'}</Badge>
+                        <button
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                          aria-label="Course options"
+                        >
+                          <MoreHorizontal className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </Card>
+                  ))}
+              </div>
+            </div>
+
+            {/* Learner Management Table */}
+            <div className="space-y-3">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+                <Users className="h-5 w-5 text-violet-600" />
+                Enrolled Learners
+              </h2>
+              <Card className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-slate-100 bg-slate-50/70 text-xs uppercase text-slate-500">
+                    <tr>
+                      <th className="px-5 py-3">Learner</th>
+                      <th className="px-5 py-3">Cohort</th>
+                      <th className="px-5 py-3">Progress</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {data.learners.map((learner) => (
+                      <tr key={learner.id} className="hover:bg-slate-50/60">
+                        <td className="px-5 py-3.5">
+                          <p className="font-semibold text-slate-900">{learner.name}</p>
+                          <p className="text-xs text-slate-500">{learner.email}</p>
+                        </td>
+                        <td className="px-5 py-3.5 text-slate-600">{learner.cohort}</td>
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-2 w-28 overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className="h-full rounded-full bg-violet-600"
+                                style={{ width: `${learner.progress}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-semibold text-slate-700">
+                              {learner.progress}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Create Course Modal */}
+      <Modal
+        isOpen={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="Create New Cohort Course"
+      >
+        <form onSubmit={handleCreateCourse} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Course Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Microservices with ASP.NET Core 10"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-violet-500 focus:outline-none"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Category
+              </label>
+              <select
+                value={category}
+                onChange={(e) =>
+                  setCategory(e.target.value as Exclude<CourseCategory, 'All'>)
+                }
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-violet-500 focus:outline-none"
+              >
+                <option value="Development">Development</option>
+                <option value="AI & Data">AI &amp; Data</option>
+                <option value="Cloud & DevOps">Cloud &amp; DevOps</option>
+                <option value="Business">Business</option>
+                <option value="Design">Design</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Price (INR)
+              </label>
+              <input
+                type="number"
+                value={priceInr}
+                onChange={(e) => setPriceInr(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Badge Label
+            </label>
+            <input
+              type="text"
+              value={techTag}
+              onChange={(e) => setTechTag(e.target.value)}
+              placeholder=".NET / React / AI"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-violet-500 focus:outline-none"
+            />
+          </div>
+
+          {formError && <p className="text-xs text-rose-600">{formError}</p>}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={creating}>
+              Publish Course
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </DashboardLayout>
+  );
+};
+
+12. Page 4: Live Class Page (src/components/live/ & src/pages/LiveClassPage.tsx)
+
+src/components/live/CodeEditorPane.tsx
+
+import React, { useState } from 'react';
+import { Check, Copy, Play } from 'lucide-react';
+
+interface CodeEditorPaneProps {
+  code: string;
+  onChange: (next: string) => void;
+}
+
+export const CodeEditorPane: React.FC<CodeEditorPaneProps> = ({ code, onChange }) => {
+  const [copied, setCopied] = useState(false);
+  const [runOutput, setRunOutput] = useState<string | null>(null);
+
+  const lines = code.split('\n');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleRun = () => {
+    setRunOutput(
+      'Build succeeded (ASP.NET Core 10) • GET /api/product -> 200 OK (14ms)'
+    );
+  };
+
+  return (
+    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#14182B] overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/10 bg-[#1A2036] px-4 py-2.5 text-xs text-slate-300">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          <span className="ml-2 font-mono font-medium text-violet-300">
+            ProductController.cs
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2.5 py-1 hover:bg-white/10"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+          <button
+            onClick={handleRun}
+            className="inline-flex items-center gap-1 rounded-md bg-violet-600 px-2.5 py-1 font-semibold text-white hover:bg-violet-500"
+          >
+            <Play className="h-3 w-3" /> Run
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-auto p-4 font-mono text-xs sm:text-[13px] leading-6">
+        <div className="select-none pr-4 text-right text-slate-500">
+          {lines.map((_, idx) => (
+            <div key={idx}>{idx + 1}</div>
+          ))}
+        </div>
+        <textarea
+          value={code}
+          onChange={(e) => onChange(e.target.value)}
+          spellCheck={false}
+          className="flex-1 resize-none bg-transparent text-sky-100 focus:outline-none"
+        />
+      </div>
+
+      {runOutput && (
+        <div className="border-t border-white/10 bg-emerald-950/50 px-4 py-2 font-mono text-xs text-emerald-300">
+          &gt; {runOutput}
+        </div>
+      )}
+    </div>
+  );
+};
+
+src/components/live/LiveSidebar.tsx
+
+import React, { useState } from 'react';
+import { Send } from 'lucide-react';
+import { ChatMessage } from '../../types';
+import { cn } from '../../utils/formatters';
+
+interface LiveSidebarProps {
+  messages: ChatMessage[];
+  onSendMessage: (text: string) => void;
+  participantCount: number;
+}
+
+export const LiveSidebar: React.FC<LiveSidebarProps> = ({
+  messages,
+  onSendMessage,
+  participantCount,
+}) => {
+  const [tab, setTab] = useState<'Chat' | 'Q&A' | 'People'>('Chat');
+  const [input, setInput] = useState('');
+
+  const participants = [
+    'Rahul Verma (Trainer)',
+    'Priya Sharma',
+    'Amit Patel',
+    'Sneha Reddy',
+    'Karan Malhotra',
+    'Ananya Nair',
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    onSendMessage(input.trim());
+    setInput('');
+  };
+
+  return (
+    <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-[#1B2034] text-white overflow-hidden">
+      {/* Tabs */}
+      <div className="grid grid-cols-3 border-b border-white/10 text-xs font-semibold">
+        {(['Chat', 'Q&A', 'People'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cn(
+              'py-3 transition-colors',
+              tab === t
+                ? 'border-b-2 border-violet-500 text-white bg-white/5'
+                : 'text-slate-400 hover:text-white'
+            )}
+          >
+            {t === 'People' ? `People (${participantCount})` : t}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Body */}
+      {tab === 'Chat' && (
+        <>
+          <div className="flex-1 space-y-4 overflow-y-auto p-4">
+            {messages.map((msg) => (
+              <div key={msg.id} className="space-y-1">
+                <div className="flex items-center gap-2 text-xs">
+                  <span
+                    className={cn(
+                      'font-semibold',
+                      msg.role === 'Trainer' ? 'text-violet-300' : 'text-slate-200'
+                    )}
+                  >
+                    {msg.sender}
+                  </span>
+                  <span className="text-[11px] text-slate-500">{msg.time}</span>
+                </div>
+                <p className="rounded-xl bg-white/5 px-3 py-2 text-xs text-slate-200 leading-relaxed">
+                  {msg.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="flex items-center gap-2 border-t border-white/10 p-3"
+          >
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 rounded-xl border border-white/10 bg-[#121628] px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-violet-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-600 text-white hover:bg-violet-500"
+              aria-label="Send message"
+            >
+              <Send className="h-3.5 w-3.5" />
+            </button>
+          </form>
+        </>
+      )}
+
+      {tab === 'Q&A' && (
+        <div className="flex-1 space-y-3 overflow-y-auto p-4 text-xs">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <p className="font-semibold text-violet-300">Q: Should we use Minimal APIs or Controllers?</p>
+            <p className="mt-1 text-slate-300">
+              Answered by Trainer: Both work great in ASP.NET Core 10. Controllers organize large enterprise teams well, while Minimal APIs shine in microservices.
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+            <p className="font-semibold text-violet-300">Q: Where is the starter GitHub repo?</p>
+            <p className="mt-1 text-slate-300">
+              Pinned in Cohort Resources &rarr; Week 3 Lab.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {tab === 'People' && (
+        <div className="flex-1 space-y-2 overflow-y-auto p-4 text-xs">
+          {participants.map((person) => (
+            <div
+              key={person}
+              className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2"
+            >
+              <span>{person}</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+src/pages/LiveClassPage.tsx
+
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Maximize2,
+  Mic,
+  MicOff,
+  MonitorUp,
+  MoreHorizontal,
+  Users,
+  Video,
+  VideoOff,
+} from 'lucide-react';
+import { CodeEditorPane } from '../components/live/CodeEditorPane';
+import { LiveSidebar } from '../components/live/LiveSidebar';
+import { INITIAL_LIVE_CHAT, INITIAL_LIVE_CODE } from '../services/mockData';
+import { PLATFORM_MEDIA } from '../assets';
+import { ChatMessage } from '../types';
+
+export const LiveClassPage: React.FC = () => {
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const [screenShare, setScreenShare] = useState(true);
+  const [code, setCode] = useState(INITIAL_LIVE_CODE);
+  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_LIVE_CHAT);
+  const [secondsElapsed, setSecondsElapsed] = useState(4356); // 01:12:36
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsElapsed((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTimer = (sec: number) => {
+    const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  const handleSendMessage = (text: string) => {
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString([], {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `m-${Date.now()}`,
+        sender: 'You',
+        role: 'Learner',
+        time: formattedTime,
+        text,
+      },
+    ]);
+  };
+
+  const videoParticipants = [
+    {
+      name: 'Rahul Verma (Trainer)',
+      img: PLATFORM_MEDIA.rahulAvatar,
+      isTrainer: true,
+    },
+    { name: 'Priya', img: PLATFORM_MEDIA.priyaAvatar, isTrainer: false },
+    { name: 'Amit', img: PLATFORM_MEDIA.amitAvatar, isTrainer: false },
+  ];
+
+  return (
+    <div className="flex min-h-screen flex-col bg-[#0D1020] text-white">
+      {/* Top Bar */}
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-[#13172B] px-4 py-3 sm:px-6">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/learner/dashboard"
+            className="rounded-lg p-1.5 text-slate-300 hover:bg-white/10"
+            title="Back to Dashboard"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="text-sm sm:text-base font-bold">
+            Live Class: ASP.NET Core – Building Web APIs
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-600 px-2.5 py-0.5 font-bold uppercase tracking-wide">
+            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+            LIVE
+          </span>
+          <span className="inline-flex items-center gap-1 text-slate-300">
+            <Users className="h-4 w-4" /> 42
+          </span>
+          <span className="font-mono text-slate-300">{formatTimer(secondsElapsed)}</span>
+          <button
+            className="hidden sm:inline-flex rounded-lg p-1.5 text-slate-300 hover:bg-white/10"
+            aria-label="Fullscreen"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* Main 3-Column Classroom Grid */}
+      <div className="grid flex-1 gap-4 p-4 lg:grid-cols-12">
+        {/* Left Video Column */}
+        <div className="grid grid-cols-3 gap-3 lg:col-span-3 lg:grid-cols-1 lg:grid-rows-3">
+          {videoParticipants.map((p) => (
+            <div
+              key={p.name}
+              className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#1B2034]"
+            >
+              <img
+                src={p.img}
+                alt={p.name}
+                className="h-32 sm:h-40 lg:h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+              <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-lg bg-black/60 px-2.5 py-1 text-[11px] font-medium backdrop-blur-sm">
+                <Mic className="h-3 w-3 text-emerald-400" />
+                <span>{p.name}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Center Live Code Editor */}
+        <div className="min-h-[380px] lg:col-span-6">
+          <CodeEditorPane code={code} onChange={setCode} />
+        </div>
+
+        {/* Right Chat / Q&A / People Sidebar */}
+        <div className="min-h-[360px] lg:col-span-3">
+          <LiveSidebar
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            participantCount={42}
+          />
+        </div>
+      </div>
+
+      {/* Bottom Controls */}
+      <footer className="flex items-center justify-center gap-3 border-t border-white/10 bg-[#13172B] px-4 py-3">
+        <button
+          onClick={() => setMicOn((v) => !v)}
+          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+            micOn
+              ? 'border-white/15 bg-white/10 text-white hover:bg-white/20'
+              : 'border-rose-500 bg-rose-600 text-white'
+          }`}
+          title={micOn ? 'Mute Mic' : 'Unmute Mic'}
+        >
+          {micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+        </button>
+
+        <button
+          onClick={() => setCamOn((v) => !v)}
+          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+            camOn
+              ? 'border-white/15 bg-white/10 text-white hover:bg-white/20'
+              : 'border-rose-500 bg-rose-600 text-white'
+          }`}
+          title={camOn ? 'Turn Camera Off' : 'Turn Camera On'}
+        >
+          {camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
+        </button>
+
+        <button
+          onClick={() => setScreenShare((v) => !v)}
+          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+            screenShare
+              ? 'border-violet-400 bg-violet-600 text-white'
+              : 'border-white/15 bg-white/10 text-white hover:bg-white/20'
+          }`}
+          title="Share Screen"
+        >
+          <MonitorUp className="h-4 w-4" />
+        </button>
+
+        <button
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white hover:bg-white/20"
+          title="More options"
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </button>
+
+        <button
+          onClick={() => navigate('/learner/dashboard')}
+          className="ml-3 rounded-xl bg-rose-600 px-5 py-2 text-sm font-semibold text-white hover:bg-rose-500"
+        >
+          Leave
+        </button>
+      </footer>
+    </div>
+  );
+};
+
+13. Page 5: Explore Courses (src/pages/ExploreCoursesPage.tsx)
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Search, SlidersHorizontal } from 'lucide-react';
+import { CourseCard } from '../components/common/CourseCard';
+import { useAsync } from '../hooks/useAsync';
+import { courseService } from '../services/courseService';
+import { CourseCategory } from '../types';
+import { cn } from '../utils/formatters';
+
+const CATEGORIES: CourseCategory[] = [
+  'All',
+  'Development',
+  'AI & Data',
+  'Cloud & DevOps',
+  'Business',
+  'Design',
+];
+
+export const ExploreCoursesPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  const initialCategory = (searchParams.get('category') as CourseCategory) || 'All';
+
+  const [query, setQuery] = useState(initialQuery);
+  const [activeCategory, setActiveCategory] = useState<CourseCategory>(
+    CATEGORIES.includes(initialCategory) ? initialCategory : 'All'
+  );
+  const [showFilters, setShowFilters] = useState(false);
+  const [maxPrice, setMaxPrice] = useState<number>(20000);
+
+  const fetchCourses = useCallback(() => courseService.getCourses(), []);
+  const { data: courses, loading, error } = useAsync(fetchCourses);
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    const cat = searchParams.get('category') as CourseCategory | null;
+    if (q !== null) setQuery(q);
+    if (cat && CATEGORIES.includes(cat)) setActiveCategory(cat);
+  }, [searchParams]);
+
+  const filteredCourses = useMemo(() => {
+    if (!courses) return [];
+    return courses.filter((c) => {
+      const matchesCat = activeCategory === 'All' || c.category === activeCategory;
+      const matchesQuery =
+        !query.trim() ||
+        c.title.toLowerCase().includes(query.toLowerCase()) ||
+        c.subtitle.toLowerCase().includes(query.toLowerCase()) ||
+        c.techTag.toLowerCase().includes(query.toLowerCase());
+      const matchesPrice = c.priceInr <= maxPrice;
+      return matchesCat && matchesQuery && matchesPrice;
+    });
+  }, [courses, activeCategory, query, maxPrice]);
+
+  const handleCategoryChange = (cat: CourseCategory) => {
+    setActiveCategory(cat);
+    const next = new URLSearchParams(searchParams);
+    if (cat === 'All') next.delete('category');
+    else next.set('category', cat);
+    setSearchParams(next);
+  };
+
+  return (
+    <div className="bg-slate-50 py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
+        {/* Header + Search */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              Explore Courses
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Learn in-demand skills with industry experts.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex-1 md:w-80">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search courses (e.g., .NET, React, AI, DevOps)..."
+                className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={() => setShowFilters((s) => !s)}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <SlidersHorizontal className="h-4 w-4" /> Filters
+            </button>
+          </div>
+        </div>
+
+        {/* Optional Price Filter Drawer */}
+        {showFilters && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-slate-700">
+                Max Price: <span className="font-bold text-violet-600">₹{maxPrice.toLocaleString('en-IN')}</span>
+              </label>
+              <input
+                type="range"
+                min={10000}
+                max={25000}
+                step={1000}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="accent-violet-600"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setQuery('');
+                setActiveCategory('All');
+                setMaxPrice(20000);
+              }}
+              className="text-xs font-semibold text-violet-600 hover:underline"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        )}
+
+        {/* Category Pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => handleCategoryChange(cat)}
+              className={cn(
+                'rounded-full px-4 py-1.5 text-sm font-medium transition-all',
+                activeCategory === cat
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:text-slate-900'
+              )}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Course Grid */}
+        {loading && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+            Loading courses...
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && filteredCourses.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
+            <p className="text-base font-semibold text-slate-800">
+              No courses matched your filters.
+            </p>
+            <p className="mt-1 text-sm text-slate-500">
+              Try clearing your search keyword or switching categories.
+            </p>
+          </div>
+        )}
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredCourses.map((course) => (
+            <CourseCard key={course.id} course={course} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+14. Page 6: Join, Registration & Login Pages (src/pages/auth/)
+
+src/pages/auth/JoinPage.tsx
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, GraduationCap, Presentation } from 'lucide-react';
+import { Logo } from '../../components/common/Logo';
+
+export const JoinPage: React.FC = () => {
+  return (
+    <div className="min-h-[82vh] bg-gradient-to-b from-violet-50/80 via-slate-50 to-white px-4 py-16">
+      <div className="mx-auto max-w-4xl text-center">
+        <div className="mb-8 flex justify-center">
+          <Logo theme="light" />
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
+          Join Codzskill Labs
+        </h1>
+        <p className="mt-2 text-base text-slate-600">
+          Create your account and start your learning or training journey.
+        </p>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
+          {/* Learner Card */}
+          <div className="flex flex-col items-center rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition hover:border-violet-300 hover:shadow-xl">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-100 text-violet-600">
+              <GraduationCap className="h-9 w-9" />
+            </div>
+            <h2 className="mt-5 text-xl font-bold text-slate-900">I&apos;m a Learner</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Learn new skills, join live classes, work on projects and get certified.
+            </p>
+            <Link
+              to="/register/learner"
+              className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-violet-600/25 hover:from-violet-500 hover:to-indigo-500"
+            >
+              Register as Learner <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {/* Trainer Card */}
+          <div className="flex flex-col items-center rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition hover:border-violet-300 hover:shadow-xl">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600">
+              <Presentation className="h-9 w-9" />
+            </div>
+            <h2 className="mt-5 text-xl font-bold text-slate-900">I&apos;m a Trainer</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Teach, create courses, run cohorts and grow your earnings.
+            </p>
+            <Link
+              to="/register/trainer"
+              className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 hover:border-violet-400 hover:bg-violet-50"
+            >
+              Register as Trainer <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+        <p className="mt-8 text-sm text-slate-600">
+          Already have an account?{' '}
+          <Link to="/login" className="font-semibold text-violet-600 hover:underline">
+            Sign in here
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+src/pages/auth/RegisterPage.tsx
+
+import React, { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Logo } from '../../components/common/Logo';
+import { Button } from '../../components/common/Button';
+import { useAuth } from '../../context/AuthContext';
+import { isValidEmail, minLength } from '../../utils/validators';
+
+export const RegisterPage: React.FC = () => {
+  const { role: roleParam } = useParams<{ role: string }>();
+  const role: 'Learner' | 'Trainer' =
+    roleParam?.toLowerCase() === 'trainer' ? 'Trainer' : 'Learner';
+
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [expertise, setExpertise] = useState('');
+  const [experienceYears, setExperienceYears] = useState('3');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!minLength(fullName, 2)) {
+      setError('Please enter your full name.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (!minLength(password, 6)) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+    try {
+      await register({
+        fullName,
+        email,
+        password,
+        role,
+        expertise: role === 'Trainer' ? expertise : undefined,
+        experienceYears: role === 'Trainer' ? Number(experienceYears) : undefined,
+      });
+      navigate(role === 'Trainer' ? '/trainer/dashboard' : '/learner/dashboard');
+    } catch {
+      setError('Unable to complete registration. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[85vh] items-center justify-center bg-slate-50 px-4 py-12">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
+        <div className="mb-6 flex justify-center">
+          <Logo theme="light" />
+        </div>
+
+        <h1 className="text-center text-2xl font-bold text-slate-900">
+          Register as {role}
+        </h1>
+        <p className="mt-1 text-center text-sm text-slate-500">
+          {role === 'Trainer'
+            ? 'Share your industry expertise and launch live cohorts.'
+            : 'Access live classes, coding labs and verified certifications.'}
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder={role === 'Trainer' ? 'Rahul Verma' : 'Priya Sharma'}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+            />
+          </div>
+
+          {role === 'Trainer' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Primary Skill
+                </label>
+                <input
+                  type="text"
+                  value={expertise}
+                  onChange={(e) => setExpertise(e.target.value)}
+                  placeholder="ASP.NET Core, AI"
+                  className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Years Exp.
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={experienceYears}
+                  onChange={(e) => setExperienceYears(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Minimum 6 characters"
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" loading={loading} className="w-full" size="lg">
+            Create {role} Account
+          </Button>
+        </form>
+
+        <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
+          <Link
+            to={role === 'Trainer' ? '/register/learner' : '/register/trainer'}
+            className="text-violet-600 hover:underline"
+          >
+            Switch to {role === 'Trainer' ? 'Learner' : 'Trainer'} Signup
+          </Link>
+          <Link to="/login" className="text-violet-600 hover:underline">
+            Already registered? Login
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+src/pages/auth/LoginPage.tsx
+
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Logo } from '../../components/common/Logo';
+import { Button } from '../../components/common/Button';
+import { useAuth } from '../../context/AuthContext';
+import { isValidEmail, minLength } from '../../utils/validators';
+
+export const LoginPage: React.FC = () => {
+  const [email, setEmail] = useState('priya.sharma@codzskill.dev');
+  const [password, setPassword] = useState('password123');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidEmail(email)) {
+      setError('Enter a valid email address.');
+      return;
+    }
+    if (!minLength(password, 6)) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+    try {
+      const auth = await login({ email, password });
+      navigate(
+        auth.user.role === 'Trainer' ? '/trainer/dashboard' : '/learner/dashboard'
+      );
+    } catch {
+      setError('Invalid credentials. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[85vh] items-center justify-center bg-slate-50 px-4 py-12">
+      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg">
+        <div className="mb-6 flex justify-center">
+          <Logo theme="light" />
+        </div>
+
+        <h1 className="text-center text-2xl font-bold text-slate-900">
+          Sign in to CodzSkill Labs
+        </h1>
+        <p className="mt-1 text-center text-xs text-slate-500">
+          Tip: Use any email with &quot;trainer&quot; to preview Trainer Dashboard.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+            />
+          </div>
+
+          {error && (
+            <div className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" loading={loading} className="w-full" size="lg">
+            Login
+          </Button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-slate-500">
+          New to CodzSkill Labs?{' '}
+          <Link to="/join" className="font-semibold text-violet-600 hover:underline">
+            Create an account
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+15. Page 7: Cohort Details (src/pages/CohortDetailsPage.tsx)
+
+import React, { useCallback, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import {
+  Award,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Download,
+  FolderGit2,
+  Video,
+} from 'lucide-react';
+import { useAsync } from '../hooks/useAsync';
+import { courseService } from '../services/courseService';
+import { Badge } from '../components/common/Badge';
+import { Button } from '../components/common/Button';
+import { Card } from '../components/common/Card';
+import { cn, formatInr } from '../utils/formatters';
+import { PLATFORM_MEDIA } from '../assets';
+
+type TabKey = 'Overview' | 'Curriculum' | 'Projects' | 'Trainer' | 'Schedule' | 'FAQs';
+
+export const CohortDetailsPage: React.FC = () => {
+  const { slug = 'aspnet-core-full-stack-cohort' } = useParams();
+  const [activeTab, setActiveTab] = useState<TabKey>('Overview');
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrolledMsg, setEnrolledMsg] = useState<string | null>(null);
+
+  const fetchCohort = useCallback(() => courseService.getCohortBySlug(slug), [slug]);
+  const { data: cohort, loading, error } = useAsync(fetchCohort);
+
+  const handleEnroll = async () => {
+    if (!cohort) return;
+    setEnrolling(true);
+    try {
+      const res = await courseService.enrollInCohort(cohort.id);
+      setEnrolledMsg(`${res.message} (Ref: ${res.enrollmentId})`);
+    } finally {
+      setEnrolling(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-16 text-center text-sm text-slate-500">
+        Loading cohort details...
+      </div>
+    );
+  }
+
+  if (error || !cohort) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-16 text-center text-sm text-rose-600">
+        {error || 'Cohort not found.'}
+      </div>
+    );
+  }
+
+  const tabs: TabKey[] = ['Overview', 'Curriculum', 'Projects', 'Trainer', 'Schedule', 'FAQs'];
+
+  return (
+    <div className="bg-slate-50 pb-16">
+      {/* Top Hero Card */}
+      <section className="border-b border-slate-200 bg-gradient-to-br from-white via-violet-50/40 to-indigo-50/60 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
+          {/* Breadcrumb */}
+          <nav className="text-xs text-slate-500">
+            <Link to="/" className="hover:text-violet-600">Home</Link>
+            <span className="mx-2">&gt;</span>
+            <Link to="/courses" className="hover:text-violet-600">Cohorts</Link>
+            <span className="mx-2">&gt;</span>
+            <span className="font-medium text-slate-800">{cohort.title}</span>
+          </nav>
+
+          <div className="grid items-center gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-7 space-y-4">
+              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
+                {cohort.title}
+              </h1>
+              <p className="text-base text-slate-600">{cohort.subtitle}</p>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                {cohort.tags.map((tag, idx) => (
+                  <Badge
+                    key={tag}
+                    variant={idx === 0 ? 'rose' : idx === 1 ? 'emerald' : 'purple'}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Laptop / Stack Graphic */}
+            <div className="lg:col-span-5">
+              <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-[#0D132B] p-6 text-white shadow-xl">
+                <div className="flex items-center justify-between">
+                  <span className="rounded-lg bg-violet-600 px-3 py-1 font-mono text-xs font-bold">
+                    .NET 10
+                  </span>
+                  <span className="rounded-lg bg-cyan-500/20 px-3 py-1 font-mono text-xs font-bold text-cyan-300">
+                    React + TS
+                  </span>
+                  <span className="rounded-lg bg-fuchsia-500/20 px-3 py-1 font-mono text-xs font-bold text-fuchsia-300">
+                    SQL Server
+                  </span>
+                </div>
+                <pre className="mt-5 overflow-x-auto rounded-xl bg-black/40 p-4 font-mono text-xs text-violet-200">
+{`builder.Services.AddCodzSkillLabs();
+app.MapCohortHub("/live");
+app.Run();`}
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          {/* Metrics & Pricing Bar matching reference */}
+          <Card className="p-5">
+            <div className="grid items-center gap-6 lg:grid-cols-12">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:col-span-8">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-violet-600 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-500">Duration</p>
+                    <p className="text-sm font-bold text-slate-900">
+                      {cohort.durationWeeks} Weeks
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Video className="h-5 w-5 text-violet-600 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-500">Live Classes</p>
+                    <p className="text-sm font-bold text-slate-900">
+                      {cohort.liveClassesPerWeek} per week
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FolderGit2 className="h-5 w-5 text-violet-600 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-500">Project</p>
+                    <p className="text-sm font-bold text-slate-900">
+                      {cohort.projectsCount} Real Projects
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Award className="h-5 w-5 text-violet-600 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-500">Certificate</p>
+                    <p className="text-sm font-bold text-slate-900">Verified</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-start sm:items-center justify-between gap-4 border-t pt-4 lg:col-span-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+                <div>
+                  <p className="text-2xl font-extrabold text-slate-900">
+                    {formatInr(cohort.priceInr)}
+                  </p>
+                  <p className="text-[11px] text-slate-500">Inclusive of labs &amp; certificate</p>
+                </div>
+
+                <div className="flex flex-col gap-2 w-full sm:w-auto">
+                  <Button onClick={handleEnroll} loading={enrolling}>
+                    Enroll Now
+                  </Button>
+                  <button
+                    onClick={() =>
+                      alert('Brochure PDF downloaded for ' + cohort.title)
+                    }
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download Brochure
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {enrolledMsg && (
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                {enrolledMsg}
+              </div>
+            )}
+          </Card>
+
+          {/* Tabs */}
+          <div className="flex gap-6 overflow-x-auto border-b border-slate-200">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  'whitespace-nowrap pb-3 text-sm font-semibold transition-colors',
+                  activeTab === tab
+                    ? 'border-b-2 border-violet-600 text-violet-700'
+                    : 'text-slate-500 hover:text-slate-900'
+                )}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tab Content */}
+      <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+        {activeTab === 'Overview' && (
+          <Card className="p-6 space-y-4">
+            <h2 className="text-xl font-bold text-slate-900">Program Overview</h2>
+            <p className="text-sm leading-relaxed text-slate-600">{cohort.overview}</p>
+            <div className="grid gap-4 pt-2 sm:grid-cols-3">
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-sm font-bold text-slate-900">Live Mentor Code Reviews</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Weekly architecture feedback directly on your GitHub pull requests.
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-sm font-bold text-slate-900">Cloud Sandbox Included</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  Run .NET 10, SQL Server, and Docker labs straight from your workspace.
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-sm font-bold text-slate-900">Career &amp; Mock Interviews</p>
+                <p className="mt-1 text-xs text-slate-600">
+                  1:1 system design and full-stack interview preparation.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {activeTab === 'Curriculum' && (
+          <div className="space-y-4">
+            {cohort.curriculum.map((mod) => (
+              <Card key={mod.week} className="p-5">
+                <p className="text-xs font-bold uppercase text-violet-600">{mod.week}</p>
+                <h3 className="mt-1 text-lg font-bold text-slate-900">{mod.title}</h3>
+                <ul className="mt-3 space-y-2">
+                  {mod.topics.map((topic) => (
+                    <li key={topic} className="flex items-start gap-2 text-sm text-slate-600">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500 shrink-0" />
+                      <span>{topic}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'Projects' && (
+          <div className="grid gap-6 md:grid-cols-2">
+            {cohort.projects.map((proj) => (
+              <Card key={proj.title} className="p-6">
+                <h3 className="text-lg font-bold text-slate-900">{proj.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{proj.description}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {proj.stack.map((tech) => (
+                    <Badge key={tech} variant="purple">
+                      {tech}
+                    </Badge>
+                  ))}
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'Trainer' && (
+          <Card className="flex flex-col sm:flex-row items-center gap-6 p-6">
+            <img
+              src={PLATFORM_MEDIA.rahulAvatar}
+              alt={cohort.trainerName}
+              className="h-24 w-24 rounded-2xl object-cover"
+            />
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">{cohort.trainerName}</h3>
+              <p className="text-sm font-medium text-violet-600">{cohort.trainerTitle}</p>
+              <p className="mt-2 text-sm text-slate-600">
+                12+ years building distributed enterprise systems on .NET, Azure, and React. Mentored over 8,000+ engineers globally.
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {activeTab === 'Schedule' && (
+          <Card className="divide-y divide-slate-100">
+            {cohort.schedule.map((slot) => (
+              <div key={slot.day} className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-violet-600" />
+                  <div>
+                    <p className="font-bold text-slate-900">{slot.day}</p>
+                    <p className="text-xs text-slate-500">{slot.sessionType}</p>
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-slate-700">{slot.time}</span>
+              </div>
+            ))}
+          </Card>
+        )}
+
+        {activeTab === 'FAQs' && (
+          <div className="space-y-3">
+            {cohort.faqs.map((faq) => (
+              <Card key={faq.question} className="p-5">
+                <h4 className="font-bold text-slate-900">{faq.question}</h4>
+                <p className="mt-1.5 text-sm text-slate-600">{faq.answer}</p>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+};
+
+16. Page 8: Corporate Training (src/pages/CorporateTrainingPage.tsx)
+
+import React, { useRef, useState } from 'react';
+import {
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Layers,
+  Laptop,
+  UserCheck,
+} from 'lucide-react';
+import { Card } from '../components/common/Card';
+import { Button } from '../components/common/Button';
+import { PLATFORM_MEDIA } from '../assets';
+import { corporateService } from '../services/corporateService';
+import { isValidEmail, minLength } from '../utils/validators';
+
+export const CorporateTrainingPage: React.FC = () => {
+  const formRef = useRef<HTMLDivElement>(null);
+
+  const [companyName, setCompanyName] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [workEmail, setWorkEmail] = useState('');
+  const [teamSize, setTeamSize] = useState('25-50');
+  const [focusArea, setFocusArea] = useState('ASP.NET Core & Cloud Architecture');
+  const [deliveryMode, setDeliveryMode] = useState<'Online' | 'On-site' | 'Hybrid'>('Hybrid');
+  const [notes, setNotes] = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const pillars = [
+    {
+      icon: <Layers className="h-5 w-5 text-violet-600" />,
+      title: 'Custom Programs',
+      desc: 'Tailored to your business goals',
+    },
+    {
+      icon: <UserCheck className="h-5 w-5 text-violet-600" />,
+      title: 'Expert Trainers',
+      desc: 'Industry practitioners',
+    },
+    {
+      icon: <Laptop className="h-5 w-5 text-violet-600" />,
+      title: 'Flexible Delivery',
+      desc: 'Online, on-site or hybrid',
+    },
+    {
+      icon: <BarChart3 className="h-5 w-5 text-violet-600" />,
+      title: 'Measurable Impact',
+      desc: 'Assessments & reports',
+    },
+  ];
+
+  const tracks = [
+    {
+      title: 'Enterprise .NET 10 & Microservices',
+      duration: '4–8 Weeks',
+      description: 'Modernize legacy .NET apps to Clean Architecture, EF Core, and Azure Kubernetes.',
+    },
+    {
+      title: 'Full-Stack React & TypeScript Engineering',
+      duration: '4 Weeks',
+      description: 'Accelerate frontend velocity with reusable design systems and automated testing.',
+    },
+    {
+      title: 'Generative AI & Copilots for Teams',
+      duration: '3 Weeks',
+      description: 'Build secure RAG systems, Semantic Kernel integrations, and LLM workflows.',
+    },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!minLength(companyName, 2) || !minLength(contactName, 2)) {
+      setError('Please enter your company name and full name.');
+      return;
+    }
+    if (!isValidEmail(workEmail)) {
+      setError('Please enter a valid work email address.');
+      return;
+    }
+
+    setError('');
+    setSubmitting(true);
+    try {
+      const res = await corporateService.submitProposal({
+        companyName,
+        contactName,
+        workEmail,
+        teamSize,
+        focusArea,
+        deliveryMode,
+        notes,
+      });
+      setSuccessMessage(`${res.message} (Reference: ${res.referenceId})`);
+      setCompanyName('');
+      setContactName('');
+      setWorkEmail('');
+      setNotes('');
+    } catch {
+      setError('Failed to submit proposal request. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-slate-50">
+      {/* Hero Banner matching screenshot */}
+      <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-white via-violet-50/50 to-indigo-100/60 py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-10 lg:grid-cols-12">
+            <div className="lg:col-span-7 space-y-6">
+              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
+                Corporate Training
+              </h1>
+              <p className="text-base sm:text-lg text-slate-600 max-w-xl">
+                Upskill your teams with customized, industry-focused training programs.
+              </p>
+
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 pt-2">
+                {pillars.map((p) => (
+                  <div
+                    key={p.title}
+                    className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50">
+                      {p.icon}
+                    </div>
+                    <h3 className="mt-3 text-sm font-bold text-slate-900">{p.title}</h3>
+                    <p className="mt-1 text-xs text-slate-500">{p.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button size="lg" onClick={scrollToForm}>
+                  Request a Proposal <ArrowRight className="h-4 w-4" />
+                </Button>
+                <Button size="lg" variant="outline" onClick={scrollToForm}>
+                  Talk to an Expert
+                </Button>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5">
+              <div className="overflow-hidden rounded-3xl border border-violet-200 bg-white p-2 shadow-xl">
+                <img
+                  src={PLATFORM_MEDIA.corporateTeam}
+                  alt="Corporate team training session"
+                  className="h-80 w-full rounded-2xl object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Business Training Programs */}
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <h2 className="text-2xl font-bold text-slate-900">
+          Popular Enterprise Training Tracks
+        </h2>
+        <div className="mt-6 grid gap-6 md:grid-cols-3">
+          {tracks.map((track) => (
+            <Card key={track.title} className="p-6 flex flex-col justify-between">
+              <div>
+                <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">
+                  {track.duration}
+                </span>
+                <h3 className="mt-3 text-lg font-bold text-slate-900">{track.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{track.description}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setFocusArea(track.title);
+                  scrollToForm();
+                }}
+                className="mt-5 text-left text-xs font-semibold text-violet-600 hover:underline"
+              >
+                Select this track &rarr;
+              </button>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Request Proposal Form */}
+      <section ref={formRef} className="mx-auto max-w-4xl px-4 pb-16 sm:px-6 lg:px-8">
+        <Card className="p-6 sm:p-8">
+          <h2 className="text-2xl font-bold text-slate-900">
+            Request a Corporate Training Proposal
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Share your team goals and our curriculum architects will craft a custom plan.
+          </p>
+
+          {successMessage && (
+            <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600 shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Company Name *
+              </label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Acme Technologies"
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Your Name *
+              </label>
+              <input
+                type="text"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="Engineering Manager"
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Work Email *
+              </label>
+              <input
+                type="email"
+                value={workEmail}
+                onChange={(e) => setWorkEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Team Size
+              </label>
+              <select
+                value={teamSize}
+                onChange={(e) => setTeamSize(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+              >
+                <option value="10-25">10–25 Engineers</option>
+                <option value="25-50">25–50 Engineers</option>
+                <option value="50-150">50–150 Engineers</option>
+                <option value="150+">150+ Engineers</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Primary Technology Track
+              </label>
+              <input
+                type="text"
+                value={focusArea}
+                onChange={(e) => setFocusArea(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Delivery Mode
+              </label>
+              <select
+                value={deliveryMode}
+                onChange={(e) =>
+                  setDeliveryMode(e.target.value as 'Online' | 'On-site' | 'Hybrid')
+                }
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+              >
+                <option value="Online">Online Live</option>
+                <option value="On-site">On-site Workshop</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Training Goals &amp; Timeline
+              </label>
+              <textarea
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Tell us about your current tech stack and upskilling timeline..."
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
+              />
+            </div>
+
+            {error && (
+              <div className="sm:col-span-2 rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+                {error}
+              </div>
+            )}
+
+            <div className="sm:col-span-2">
+              <Button type="submit" size="lg" loading={submitting}>
+                Submit Proposal Request <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </form>
+        </Card>
+      </section>
+    </div>
+  );
+};
+
+17. Routing & App Entry (src/App.tsx & src/main.tsx)
+
+src/App.tsx
+
+import React from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { PublicLayout } from './layouts/PublicLayout';
+import { LandingPage } from './pages/LandingPage';
+import { ExploreCoursesPage } from './pages/ExploreCoursesPage';
+import { CohortDetailsPage } from './pages/CohortDetailsPage';
+import { CorporateTrainingPage } from './pages/CorporateTrainingPage';
+import { JoinPage } from './pages/auth/JoinPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
+import { LoginPage } from './pages/auth/LoginPage';
+import { LearnerDashboardPage } from './pages/learner/LearnerDashboardPage';
+import { TrainerDashboardPage } from './pages/trainer/TrainerDashboardPage';
+import { LiveClassPage } from './pages/LiveClassPage';
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Dark-header public landing route */}
+          <Route element={<PublicLayout navbarVariant="dark" />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/courses" element={<ExploreCoursesPage />} />
+          </Route>
+
+          {/* Light-header public routes matching screenshot */}
+          <Route element={<PublicLayout navbarVariant="light" />}>
+            <Route path="/cohorts/:slug" element={<CohortDetailsPage />} />
+            <Route path="/corporate" element={<CorporateTrainingPage />} />
+            <Route path="/join" element={<JoinPage />} />
+            <Route path="/register/:role" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
+          </Route>
+
+          {/* Dedicated Dashboard & Live Classroom experiences */}
+          <Route path="/learner/dashboard" element={<LearnerDashboardPage />} />
+          <Route path="/trainer/dashboard" element={<TrainerDashboardPage />} />
+          <Route path="/live-class" element={<LiveClassPage />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+};
+
+export default App;
+
+src/main.tsx
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+18. Running & Connecting to ASP.NET Core 10 Web API
+
+1.  Install and start locally:
+    npm install
+    cp .env.example .env
+    npm run dev
+2.  Switch from Mock Data to your ASP.NET Core 10 API:
+      - Set VITE_USE_MOCK_DATA=false and
+        VITE_API_BASE_URL=https://localhost:7001/api in .env.
+      - Update route paths in src/services/apiConfig.ts (or via VITE_EP_*
+        environment variables) to match your ASP.NET Core controllers.
+      - src/services/apiClient.ts automatically attaches Authorization: Bearer
+        <token> on every request and handles 401 token cleanup cleanly. 
