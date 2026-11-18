@@ -1,6 +1,7 @@
 ﻿using CodzSkillLabs.Application.DTOs.Auth;
 using CodzSkillLabs.Application.Interfaces.IService;
 using CodzSkillLabs.Application.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +22,20 @@ namespace CodzSkillLabs.API.EndPoints
         public async Task<Result<LoginResponse>> Login(LoginRequest model)
         {
             return await authService.Login(model);
+        }
+
+        [Authorize]
+        [HttpGet("my-profile")]
+        public async Task<Result<UserProfileResponse>> GetMyProfile()
+        {
+            return await authService.GetMyProfile();
+        }
+
+        [Authorize]
+        [HttpPut("update-profile")]
+        public async Task<Result<UserProfileResponse>> UpdateProfile(UserUpdateRequest model)
+        {
+            return await authService.UpdateProfile(model);
         }
     }
 }

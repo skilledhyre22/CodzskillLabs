@@ -29,7 +29,7 @@ namespace CodzSkillLabs.API
                     ValidIssuer = configuration["JWT:Issuer"],
                     ValidateIssuerSigningKey=true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                  Encoding.UTF8.GetBytes(configuration["JWT:Key"]!)),
+                    Encoding.UTF8.GetBytes(configuration["JWT:Key"]!)),
                 };
             });
             services.AddAuthorization();

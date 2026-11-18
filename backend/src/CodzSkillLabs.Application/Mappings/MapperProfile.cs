@@ -13,6 +13,9 @@ namespace CodzSkillLabs.Application.Mappings
         {
             CreateMap<SignUpRequest, User>().ReverseMap();
             CreateMap<SignUpResponse, User>().ReverseMap();
+            CreateMap<UserProfileResponse, User>().ReverseMap();
+            CreateMap<UserUpdateRequest, User>().ReverseMap();
+            CreateMap<UserListResponse, User>().ReverseMap();
         }
     }
 }
