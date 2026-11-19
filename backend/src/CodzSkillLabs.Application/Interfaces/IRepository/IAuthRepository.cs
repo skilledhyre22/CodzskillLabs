@@ -20,8 +20,8 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
 
         Task<IEnumerable<UserListResponse>> SearchUser(string? name, string? email);
 
-        Task<IEnumerable<UserListResponse>> GetUsersPagination(
-    int pageNumber, int pageSize);
+        Task<IEnumerable<UserListResponse>> GetUsersPagination(int pageNumber, int pageSize);
+        Task<IEnumerable<UserListResponse>> FilterUsers(string? role,bool? isActive,bool? isDeleted);
 
     }
 }

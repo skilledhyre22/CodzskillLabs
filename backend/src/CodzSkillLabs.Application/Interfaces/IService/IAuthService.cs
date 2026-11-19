@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using CodzSkillLabs.Application.DTOs;
 using CodzSkillLabs.Application.DTOs.Auth;
 using CodzSkillLabs.Application.Utility;
 
@@ -25,9 +24,17 @@ namespace CodzSkillLabs.Application.Interfaces.IService
 
         Task<Result<bool>> DeleteUser(Guid id);
 
+        Task<Result<bool>> RestoreUser(Guid id);
+
         Task<Result<bool>> ChangeUserStatus(Guid id, UpdateUserStatusRequest model);
 
         Task<Result<IEnumerable<UserListResponse>>> SearchUser(string? name, string? email);
         Task<Result<IEnumerable<UserListResponse>>> GetUsers(int pageNo,int pageSize);
+
+        Task<Result<IEnumerable<UserListResponse>>> FilterUsers(string? role,bool? isActive,bool? isDeleted);
+
+        Task<Result<bool>> AssignRole(AssignRoleRequest model);
+
+        Task<Result<LoginResponse>> GoogleLoginAsync(GoogleLoginRequest model);
     }
 }

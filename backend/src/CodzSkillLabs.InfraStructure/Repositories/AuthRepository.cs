@@ -11,6 +11,39 @@ namespace CodzSkillLabs.InfraStructure.Repositories
 {
     public class AuthRepository(CodzSkillLabsDbContext context) : BaseRepository<User>(context), IAuthRepository
     {
+        public async Task<IEnumerable<UserListResponse>> FilterUsers(
+     string? role,
+     bool? isActive,
+     bool? isDeleted)
+        {
+            var query = @"EXEC SpFilterUsers
+                  @Role = @Role,
+                  @IsActive = @IsActive,
+                  @IsDeleted = @IsDeleted";
+
+            var users = await QueryAsync<UserFilterResult>(query, new {role,isActive,isDeleted});
+                
+
+            var result = users
+                .GroupBy(u => u.Id)
+                .Select(g => new UserListResponse
+                {
+                    Id = g.First().Id,
+                    FirstName = g.First().FirstName,
+                    LastName = g.First().LastName,
+                    Email = g.First().Email,
+                    Role = g
+                        .Where(x => x.Role != null)
+                        .Select(x => x.Role!)
+                        .Distinct()
+                        .ToList(),
+                    IsActive = g.First().IsActive,
+                    IsDeleted = g.First().IsDeleted
+                });
+
+            return result;
+        }
+
         public async Task<IEnumerable<UserListResponse>> GetAllUsers()
         {
             return await context.Users
