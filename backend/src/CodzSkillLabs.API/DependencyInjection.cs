@@ -31,6 +31,10 @@ namespace CodzSkillLabs.API
                     IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(configuration["JWT:Key"]!)),
                 };
+            }).AddGoogle(options =>
+            {
+                options.ClientId = configuration["GoogleAuth:ClientId"]!;
+                options.ClientSecret = configuration["GoogleAuth:ClientSecret"]!;
             });
             services.AddAuthorization();
             

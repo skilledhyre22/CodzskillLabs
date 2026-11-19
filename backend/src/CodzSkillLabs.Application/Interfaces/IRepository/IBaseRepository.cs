@@ -12,6 +12,7 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
         #region async methods
         Task AddAsync(T model);
 
+        Task<T> GetByIdAsync(Guid id);
         Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression);
 
         Task UpdateAsync(T model);

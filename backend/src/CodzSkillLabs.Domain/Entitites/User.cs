@@ -24,6 +24,7 @@ namespace CodzSkillLabs.Domain.Entitites
 
         public bool IsDeleted { get; set; } = false;
 
+        public string? GoogleId { get; set; } = string.Empty;
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 

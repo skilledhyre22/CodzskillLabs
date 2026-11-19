@@ -1,5 +1,4 @@
-﻿using CodzSkillLabs.Application.DTOs;
-using CodzSkillLabs.Application.DTOs.Auth;
+﻿using CodzSkillLabs.Application.DTOs.Auth;
 using CodzSkillLabs.Application.Interfaces.IService;
 using CodzSkillLabs.Application.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -40,6 +39,14 @@ namespace CodzSkillLabs.API.EndPoints
             return await authService.DeleteUser(id);
         }
 
+
+        [Authorize()]
+        [HttpPatch("restore-user/{id:guid}")]
+        public async Task<Result<bool>> RestoreUser(Guid id)
+        {
+            return await authService.RestoreUser(id);
+        }
+
         [Authorize]
         [HttpPatch("update-status/{id:guid}")]
         public async Task<Result<bool>> ChangeUserStatus(Guid id, UpdateUserStatusRequest model)
@@ -61,6 +68,20 @@ namespace CodzSkillLabs.API.EndPoints
             return await authService.GetUsers(pageNumber, pageSize);
         }
 
+        [Authorize]
+        [HttpGet("filter")]
+        [Authorize]
+        public async Task<Result<IEnumerable<UserListResponse>>> FilterUsers([FromQuery] string? role,[FromQuery] bool? isActive,[FromQuery] bool? isDeleted)
+        {
+            return await authService.FilterUsers(role, isActive, isDeleted);
+        }
+
+        [HttpPatch("assign-role")]
+        [Authorize]
+        public async Task<Result<bool>> AssignRole(AssignRoleRequest model)
+        {
+            return await authService.AssignRole(model);
+        }
     }
 
 

@@ -48,6 +48,11 @@ namespace CodzSkillLabs.InfraStructure.Repositories
             return await context.Set<T>().Skip(res).Take(pageSize).ToListAsync();
         }
 
+        public async Task<T> GetByIdAsync(Guid id)
+        {
+            return await context.Set<T>().FindAsync(id);
+        }
+
         #endregion
     }
 }

@@ -7,5 +7,6 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
 {
     public interface IUserRoleRepository:IBaseRepository<UserRole>
     {
+        Task<UserRole?> GetUserRole(Guid userId);
     }
 }
