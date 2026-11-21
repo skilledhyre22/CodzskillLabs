@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ChevronDown, Menu, Search, X } from 'lucide-react';
 import { Logo } from './Logo';
-import { useAuth } from '../../../app/providers/AuthProvider';
+// import { useAuth } from '../../../app/providers/AuthProvider';
 import { cn } from '../../utilis/formatters';
 
 interface NavbarProps {
@@ -15,7 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = 'dark' }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  // const { user, isAuthenticated } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +35,8 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = 'dark' }) => {
     { label: 'Community', to: '/join', hasDropdown: false },
   ];
 
-  const dashboardRoute =
-    user?.role === 'Trainer' ? '/trainer/dashboard' : '/learner/dashboard';
+  // const dashboardRoute =
+  //   user?.role === 'Trainer' ? '/trainer/dashboard' : '/learner/dashboard';
 
   return (
     <header
@@ -120,14 +120,14 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = 'dark' }) => {
               </Link>
 
 
-          {isAuthenticated ? (
+          {/* {isAuthenticated ? (
             <Link
               to={dashboardRoute}
               className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-violet-500 hover:to-indigo-500"
             >
               Go to Dashboard
-            </Link>
-          ) : (
+            </Link> */}
+          {/* ) : ( */}
             <>
               <Link
                 to="/login"
@@ -147,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({ variant = 'dark' }) => {
                 Get Started
               </Link>
             </>
-          )}
+          {/* )} */}
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}

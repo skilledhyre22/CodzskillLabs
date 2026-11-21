@@ -1,49 +1,67 @@
 
-import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { useAuth } from '../../app/providers/AuthProvider';
 import { Logo } from '../../shared/components/common/Logo';
 import { Button } from '../../shared/components/common/Button';
-import { isValidEmail, minLength } from '../../shared/utilis/validators';
+import { authToken } from '../../shared/api/axiosInstance';
+import { login, googleLogin } from '../../shared/services/authService';
+import { toast } from 'react-toastify';
+import { useForm } from 'react-hook-form';
+import type { LoginRequest } from '../../shared/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema } from '../../shared/types/schema/LoginSchema';
+import { GoogleLogin } from '@react-oauth/google';
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('priya.sharma@codzskill.dev');
-  const [password, setPassword] = useState('password123');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginRequest>({
+    resolver: zodResolver(loginSchema)
+  });
 
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRoleNavigation = (roles: string[]) => {
+    const userRoles = roles.map(role => role.toLowerCase());
 
-    if (!isValidEmail(email)) {
-      setError('Enter a valid email address.');
-      return;
+    if (userRoles.includes('candidate')) {
+      navigate('/learner-dashboardPage');
+    } else if (userRoles.includes('trainer')) {
+      navigate('/trainer-dashboard');
+    } else if (userRoles.includes('superadmin')) {
+      navigate('/superadmin-dashboardPage');
+    } else {
+      toast.error('No dashboard assigned to your role.');
     }
+  };
 
-    if (!minLength(password, 6)) {
-      setError('Password must be at least 6 characters.');
-      return;
+  const submit = async (model: LoginRequest) => {
+    const response = await login(model);
+
+    if (response.isSuccess && response.data) {
+      localStorage.setItem(authToken, response.data.token);
+
+      toast.success(response.message);
+      handleRoleNavigation(response.data.roles);
+    } else {
+      toast.error(response.problemDetails?.title || 'Login failed.');
     }
+  };
 
-    setError('');
-    setLoading(true);
+  const handleGoogleLogin = async (credential: string) => {
+    const response = await googleLogin({
+      idToken: credential
+    });
 
-    try {
-      const auth = await login({ email, password });
+    if (response.isSuccess && response.data) {
+      localStorage.setItem(authToken, response.data.token);
 
-      navigate(
-        auth.user.role === 'Trainer'
-          ? '/trainer/dashboard'
-          : '/learner/dashboard'
-      );
-    } catch {
-      setError('Invalid credentials. Please try again.');
-    } finally {
-      setLoading(false);
+      toast.success(response.message);
+      handleRoleNavigation(response.data.roles);
+    } else {
+      toast.error(response.problemDetails?.title || 'Google login failed.');
     }
   };
 
@@ -58,11 +76,7 @@ export const LoginPage: React.FC = () => {
           Sign in to CodzSkill Labs
         </h1>
 
-        <p className="mt-1 text-center text-xs text-slate-500">
-          Tip: Use any email with &quot;trainer&quot; to preview Trainer Dashboard.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit(submit)} className="mt-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">
               Email
@@ -70,10 +84,15 @@ export const LoginPage: React.FC = () => {
 
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              {...register('email')}
               className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
             />
+
+            {errors.email && (
+              <p className="mt-1 text-xs font-medium text-rose-600">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -83,27 +102,49 @@ export const LoginPage: React.FC = () => {
 
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register('password')}
               className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
             />
+
+            {errors.password && (
+              <p className="mt-1 text-xs font-medium text-rose-600">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
-          {error && (
-            <div className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
-              {error}
-            </div>
-          )}
-
-          <Button type="submit" loading={loading} className="w-full" size="lg">
+          <Button
+            type="submit"
+            loading={isSubmitting}
+            disabled={isSubmitting}
+            className="w-full"
+            size="lg"
+          >
             Login
           </Button>
         </form>
 
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-200" />
+          <span className="text-xs text-slate-400">OR</span>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+              if (credentialResponse.credential) {
+                handleGoogleLogin(credentialResponse.credential);
+              }
+            }}
+            onError={() => toast.error('Google authentication failed.')}
+          />
+        </div>
+
         <p className="mt-6 text-center text-xs text-slate-500">
           New to CodzSkill Labs?{' '}
           <Link
-            to="/join"
+            to="/register"
             className="font-semibold text-violet-600 hover:underline"
           >
             Create an account

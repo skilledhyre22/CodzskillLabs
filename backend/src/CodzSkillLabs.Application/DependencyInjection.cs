@@ -10,6 +10,7 @@ namespace CodzSkillLabs.Application
         {
             services.AddAutoMapper(cfg => { },typeof(AssemblyMarker.AssemblyMarker));
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRoleService, RoleService>();
             return services;
         }
     }

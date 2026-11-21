@@ -1,4 +1,5 @@
 ﻿using CodzSkillLabs.Application.DTOs.Auth;
+using CodzSkillLabs.Application.DTOs.Role;
 using CodzSkillLabs.Application.Interfaces.IService;
 using CodzSkillLabs.Application.Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace CodzSkillLabs.API.EndPoints
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserManagementController(IAuthService authService) : ControllerBase
+    public class UserManagementController(IAuthService authService,IRoleService roleService) : ControllerBase
     {
         [Authorize]
         [HttpGet("all-users")]
@@ -70,7 +71,6 @@ namespace CodzSkillLabs.API.EndPoints
 
         [Authorize]
         [HttpGet("filter")]
-        [Authorize]
         public async Task<Result<IEnumerable<UserListResponse>>> FilterUsers([FromQuery] string? role,[FromQuery] bool? isActive,[FromQuery] bool? isDeleted)
         {
             return await authService.FilterUsers(role, isActive, isDeleted);
@@ -82,7 +82,10 @@ namespace CodzSkillLabs.API.EndPoints
         {
             return await authService.AssignRole(model);
         }
+
+        
     }
 
 
 }
+    

@@ -15,6 +15,11 @@ namespace CodzSkillLabs.API.MiddleWare
 
             app.MapCarter();
 
+            app.UseCors(options =>
+            {
+                options.SetIsOriginAllowed(_ => true).AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+            });
+
             app.UseHttpsRedirection();
 
             app.UseAuthentication();

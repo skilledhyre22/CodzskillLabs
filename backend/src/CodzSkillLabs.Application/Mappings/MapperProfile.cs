@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
 using CodzSkillLabs.Application.DTOs.Auth;
+using CodzSkillLabs.Application.DTOs.Role;
 using CodzSkillLabs.Domain.Entitites;
 
 namespace CodzSkillLabs.Application.Mappings
@@ -16,6 +17,14 @@ namespace CodzSkillLabs.Application.Mappings
             CreateMap<UserProfileResponse, User>().ReverseMap();
             CreateMap<UserUpdateRequest, User>().ReverseMap();
             CreateMap<UserListResponse, User>().ReverseMap();
+        }
+    }
+
+    public class RoleProfile:Profile
+    {
+        public RoleProfile()
+        {
+            CreateMap<RoleResponse, Role>().ReverseMap();
         }
     }
 }

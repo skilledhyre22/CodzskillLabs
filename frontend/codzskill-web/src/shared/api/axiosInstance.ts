@@ -1,61 +1,54 @@
+import axios from "axios"
+import { toast } from "react-toastify"
 
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { API_CONFIG } from '../api/apiEndPoints';
+export const BASE_URL="http://localhost:5170/api/"
 
-const TOKEN_STORAGE_KEY = 'codzskill_jwt_token';
+export const apiClient=axios.create({
+  baseURL:BASE_URL
+})
 
-export const tokenStorage = {
-  get: (): string | null => localStorage.getItem(TOKEN_STORAGE_KEY),
-  set: (token: string) => localStorage.setItem(TOKEN_STORAGE_KEY, token),
-  clear: () => localStorage.removeItem(TOKEN_STORAGE_KEY),
-};
+export const authToken="CodzSkillLabs_Auth_Token"
 
-export interface ApiError {
-  status?: number;
-  message: string;
-  details?: Record<string, string[]>;
-}
-
-const apiClient = axios.create({
-  baseURL: API_CONFIG.baseUrl,
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = tokenStorage.get();
-
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
+apiClient.interceptors.request.use(async config=>{
+    const token= localStorage.getItem(authToken)
+        if(token){
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
     return config;
-  },
-  (error) => Promise.reject(error)
-);
+}, (error) => {
+   
+  return Promise.reject(error);
+}
+)
 
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError<{ title?: string; message?: string; errors?: Record<string, string[]> }>) => {
-    if (error.response?.status === 401) {
-      tokenStorage.clear();
-    }
+       function (response) {
+       return  response;
+      },
 
-    const normalizedError: ApiError = {
-      status: error.response?.status,
-      message:
-        error.response?.data?.message ||
-        error.response?.data?.title ||
-        error.message ||
-        'An unexpected network error occurred.',
-      details: error.response?.data?.errors,
-    };
-
-    return Promise.reject(normalizedError);
-  }
-);
-
-export default apiClient;
+    function  (error) {
+       if (error.response && error.response.status === 400) {
+          toast.error('Bad Request: ' + (error.response.data.problemDetails?.title || 'Invalid request'))
+        }
+        else if (error.response && error.response.status === 401) {
+         
+                toast.error('Unauthorized: ' + (error.response.data.problemDetails?.title || 'You are not authorized to access this resource. Please login again.'))
+           
+             window.location.href = '/login';
+        }
+         else if (error.response && error.response.status === 403) {
+          toast.error('Forbidden: ' + (error.response.data.problemDetails?.title || 'You do not have permission to access this resource.'))
+        }
+        else if (error.response && error.response.status === 404) {
+          toast.error('Not Found: ' + (error.response.data.problemDetails?.title || 'The requested resource was not found.'))
+        }
+       
+        else if (error.response && error.response.status >= 400 && error.response.status < 500) {
+          toast.error('Client Error: ' + (error.response.data.problemDetails?.title))
+        }
+        else if (error.response && error.response.status >= 500) {
+          toast.error('Server Error: ' + (error.response.data.problemDetails?.title))
+        }
+        return Promise.reject(error);
+      }
+    );

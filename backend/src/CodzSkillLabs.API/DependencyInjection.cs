@@ -12,6 +12,7 @@ namespace CodzSkillLabs.API
         public static IServiceCollection AddApiService(this IServiceCollection services,IConfiguration configuration)
         {
            services.AddCarter();
+            services.AddCors();
             services.AddControllers();
            services.AddOpenApi();
            services.AddHttpContextAccessor();

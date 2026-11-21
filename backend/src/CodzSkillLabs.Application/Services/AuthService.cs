@@ -177,7 +177,7 @@ namespace CodzSkillLabs.Application.Services
                 {
                     Audience = new[]
                     {
-                     configuration["Google:ClientId"]!
+                     configuration["GoogleAuth:ClientId"]!
                     }
                 });
 

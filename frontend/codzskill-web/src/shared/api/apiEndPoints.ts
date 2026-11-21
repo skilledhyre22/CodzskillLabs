@@ -2,6 +2,7 @@
 /**
  * Central endpoint configuration for ASP.NET Core Web API integration.
  */
+export const ClientId="133003466949-3djm8dv7a5g9dc3j7g3o7ag4m2b19lne.apps.googleusercontent.com"
 export const API_CONFIG = {
   baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://localhost:7001/api',
 
