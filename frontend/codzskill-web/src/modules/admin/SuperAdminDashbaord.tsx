@@ -1,24 +1,20 @@
-
 import { useNavigate } from "react-router-dom";
 import GetAllUsers from "../../pages/superadmin/GetAllUsers";
 import { authToken } from "../../shared/api/axiosInstance";
 import { toast } from "react-toastify";
+import GetPendingApplication from "../../shared/types/trainer/GetPendingApplication";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
-const handleLogout = () => {
-  localStorage.removeItem(authToken);
-  toast.success("LoggedOut Successfully")
-  navigate("/login", { replace: true });
-};
+
+  const handleLogout = () => {
+    localStorage.removeItem(authToken);
+    toast.success("LoggedOut Successfully");
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <button
-  onClick={handleLogout}
-  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
->
-  Logout
-</button>
       {/* Dashboard Header */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -30,15 +26,29 @@ const handleLogout = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => navigate("/")}
-          className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-        >
-          Back to Home
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate("/")}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            Back to Home
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
-      {/* Dashboard Content */}
+      {/* Trainer Applications */}
+      <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <GetPendingApplication />
+      </div>
+
+      {/* User Management */}
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-800">

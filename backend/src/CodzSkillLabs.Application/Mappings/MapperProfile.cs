@@ -4,6 +4,7 @@ using System.Text;
 using AutoMapper;
 using CodzSkillLabs.Application.DTOs.Auth;
 using CodzSkillLabs.Application.DTOs.Role;
+using CodzSkillLabs.Application.DTOs.Trainer;
 using CodzSkillLabs.Domain.Entitites;
 
 namespace CodzSkillLabs.Application.Mappings
@@ -25,6 +26,15 @@ namespace CodzSkillLabs.Application.Mappings
         public RoleProfile()
         {
             CreateMap<RoleResponse, Role>().ReverseMap();
+        }
+    }
+    public class TrainerProfile : Profile
+    {
+        public TrainerProfile()
+        {
+            CreateMap<TrainerRequest, Trainer>().ReverseMap();
+            CreateMap<Trainer, TrainerResponse>().ReverseMap();
+            CreateMap<UpdateTrainerStatusRequest, Trainer>().ReverseMap();
         }
     }
 }

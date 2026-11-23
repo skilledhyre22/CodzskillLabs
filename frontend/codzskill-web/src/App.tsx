@@ -12,6 +12,7 @@ import SuperAdminDashboard from "./modules/admin/SuperAdminDashbaord";
 import ViewUserDetails from "./pages/superadmin/ViewUserDetails";
 import UpdateUser from "./pages/superadmin/UpdateUser";
 import GetAllUsers from "./pages/superadmin/GetAllUsers";
+import TrainerApply from "./pages/trainer/TrainerApply";
 
 // // import { AuthProvider } from './app/providers/AuthProvider';
 
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
             <Route path="/get-all-users" element={<GetAllUsers/>}></Route>
             <Route path="/user/:id" element={<ViewUserDetails/>}></Route>
             <Route path="/update-user/:id" element={<UpdateUser/>}></Route>
+            <Route path="/trainer-apply" element={<TrainerApply/>}></Route>
            </Routes>
           </BrowserRouter>
           </> 

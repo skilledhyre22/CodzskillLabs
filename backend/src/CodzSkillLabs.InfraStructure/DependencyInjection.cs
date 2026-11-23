@@ -30,6 +30,7 @@ namespace CodzSkillLabs.InfraStructure
             services.AddScoped<IHttpContextService, HttpContextService>();
             services.AddScoped<IJWTProvider, JWTProvider.JWTProvider>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<ITrainerRepository, TrainerRepository>();
 
             return services;
         }

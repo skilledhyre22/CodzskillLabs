@@ -2,17 +2,20 @@
 import { useForm } from "react-hook-form";
 import type { SignUpRequest } from "../../shared/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SignUpSchema } from "../../shared/types/schema/SignUpSchema";
+import { SignUpSchema } from "../../shared/types/schema/auth/SignUpSchema";
 import { signUp } from "../../shared/services/authService";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import { Logo } from "../../shared/components/common/Logo";
 import { Button } from "../../shared/components/common/Button";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 
 export const RegisterPage: React.FC = () => {
 
   const navigate = useNavigate();
+  const [password,SetPassword]=useState(false);
 
   const {
     register,
@@ -115,24 +118,35 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Password
-            </label>
+          {/* Password */}
+<div>
+  <label className="block text-sm font-medium text-slate-700">
+    Password
+  </label>
 
-            <input
-              type="password"
-              {...register("password")}
-              placeholder="Minimum 8 characters"
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
-            />
+  <div className="relative mt-1">
+    <input
+      type={password ? "text" : "password"}
+      {...register("password")}
+      placeholder="Minimum 8 characters"
+      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 pr-11 text-sm focus:border-violet-500 focus:outline-none"
+    />
 
-            {errors.password && (
-              <p className="mt-1 text-xs text-rose-600">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+    <button
+      type="button"
+      onClick={() => SetPassword(!password)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-violet-600"
+    >
+      {password ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  </div>
+
+  {errors.password && (
+    <p className="mt-1 text-xs text-rose-600">
+      {errors.password.message}
+    </p>
+  )}
+</div>
 
           <Button
             type="submit"

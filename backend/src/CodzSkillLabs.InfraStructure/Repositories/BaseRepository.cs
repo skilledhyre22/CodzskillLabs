@@ -53,6 +53,20 @@ namespace CodzSkillLabs.InfraStructure.Repositories
             return await context.Set<T>().FindAsync(id);
         }
 
+        public async Task<int> ExecuteAsync<TEntity>(string sql, object? param = null, CommandType commandType = CommandType.Text, IDbTransaction? transaction = null)
+        {
+            SqlConnection connection = new(context.Database.GetConnectionString());
+            return await connection.ExecuteAsync(sql, param, transaction,null, commandType);
+        }
+
+        public async Task<TEntity> FirstOrDefaultAsync<TEntity>(string sql, object? param = null, CommandType commandType = CommandType.Text, IDbTransaction? transaction = null)
+        {
+            SqlConnection connection = new(context.Database.GetConnectionString());
+            return (await connection.QueryFirstOrDefaultAsync<TEntity>(sql, param, transaction, null, commandType))!;
+        }
+
+
+
         #endregion
     }
 }

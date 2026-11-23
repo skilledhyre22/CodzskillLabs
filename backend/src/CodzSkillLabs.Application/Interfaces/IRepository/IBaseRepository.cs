@@ -18,8 +18,10 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
         Task UpdateAsync(T model);
 
         Task<IEnumerable<TEntity>> SQLQueryAsync<TEntity>(FormattableString query, CancellationToken cancellationToken = default);
+        Task<TEntity> FirstOrDefaultAsync<TEntity>(string sql, object? param = default, CommandType commandType = CommandType.Text, IDbTransaction? transaction = null);
 
         Task<IEnumerable<TEntity>> QueryAsync<TEntity>(string sql, object? param = default, CommandType commandType = CommandType.Text, IDbTransaction? transaction = null);
+        Task<int> ExecuteAsync<TEntity>(string sql, object? param = default, CommandType commandType = CommandType.Text, IDbTransaction? transaction = null);
 
         Task<IEnumerable<T>> GetAllAsync(int pageNo, int pageSize);
         #endregion

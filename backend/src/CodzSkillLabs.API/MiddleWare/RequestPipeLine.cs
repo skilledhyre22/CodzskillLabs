@@ -22,9 +22,12 @@ namespace CodzSkillLabs.API.MiddleWare
 
             app.UseHttpsRedirection();
 
+            app.UseRateLimiter();
+
             app.UseAuthentication();
 
             app.UseAuthorization();
+
 
             app.MapControllers();
 

@@ -46,6 +46,38 @@ namespace CodzSkillLabs.InfraStructure.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.Trainer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PrimarySkill")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("YearsOfExperience")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Trainers");
+                });
+
             modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -61,6 +93,9 @@ namespace CodzSkillLabs.InfraStructure.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GoogleId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
@@ -114,6 +149,17 @@ namespace CodzSkillLabs.InfraStructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserRoles");
+                });
+
+            modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.Trainer", b =>
+                {
+                    b.HasOne("CodzSkillLabs.Domain.Entitites.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.UserRole", b =>

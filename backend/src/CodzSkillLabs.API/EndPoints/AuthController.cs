@@ -4,6 +4,7 @@ using CodzSkillLabs.Application.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CodzSkillLabs.API.EndPoints
 {
@@ -11,6 +12,7 @@ namespace CodzSkillLabs.API.EndPoints
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
     {
+        [EnableRateLimiting("RegisterPolicy")]
         [HttpPost("sign-up")]
         public async Task<Result<SignUpResponse>> SignUp(SignUpRequest model)
         {
@@ -18,6 +20,7 @@ namespace CodzSkillLabs.API.EndPoints
         }
 
 
+        [EnableRateLimiting("LoginPolicy")]
         [HttpPost("login")]
         public async Task<Result<LoginResponse>> Login(LoginRequest model)
         {

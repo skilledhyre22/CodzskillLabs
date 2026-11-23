@@ -42,7 +42,12 @@ apiClient.interceptors.response.use(
         else if (error.response && error.response.status === 404) {
           toast.error('Not Found: ' + (error.response.data.problemDetails?.title || 'The requested resource was not found.'))
         }
-       
+       else if (error.response?.status === 429) {
+    toast.error(
+        error.response.data?.message ||
+        "Too many requests. Please try again later."
+    );
+}
         else if (error.response && error.response.status >= 400 && error.response.status < 500) {
           toast.error('Client Error: ' + (error.response.data.problemDetails?.title))
         }

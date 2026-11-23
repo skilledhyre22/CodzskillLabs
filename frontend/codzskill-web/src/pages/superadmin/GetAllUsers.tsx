@@ -22,7 +22,7 @@ const GetAllUsers = () => {
   const navigate = useNavigate();
 
   const fetchAllUsers = async () => {
-    const response = await getUsersPagination(1, 3);
+    const response = await getUsersPagination(1,10);
 
     if (response.isSuccess) {
       setUsers(response.data);

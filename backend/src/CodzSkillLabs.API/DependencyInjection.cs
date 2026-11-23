@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.RateLimiting;
 using Carter;
 using CodzSkillLabs.Application;
 using CodzSkillLabs.InfraStructure;
@@ -14,7 +15,51 @@ namespace CodzSkillLabs.API
            services.AddCarter();
             services.AddCors();
             services.AddControllers();
-           services.AddOpenApi();
+
+            services.AddRateLimiter(options =>
+            {
+                
+                options.AddPolicy("RegisterPolicy", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 3,
+                            Window = TimeSpan.FromMinutes(2),
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        }));
+
+                
+                options.AddPolicy("LoginPolicy", httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 3,
+                            Window = TimeSpan.FromMinutes(2),
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        }));
+
+                
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.HttpContext.Response.ContentType = "application/json";
+
+                    await context.HttpContext.Response.WriteAsJsonAsync(
+                        new
+                        {
+                            statusCode = 429,
+                            message = "Too many requests. Please try again later."
+                        },
+                        cancellationToken);
+                };
+            });
+
+            services.AddOpenApi();
            services.AddHttpContextAccessor();
            services.AddPersistanceService(configuration).AddApplicationService();
             services.AddAuthentication(options =>

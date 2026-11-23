@@ -1,3 +1,5 @@
+import type { TrainerApplicationStatus } from "../enums/Enums"
+
 export interface SignUpRequest
 {
    email:string,
@@ -102,4 +104,33 @@ export interface RoleResponse
 {
    id:string,
    name:string
+}
+
+export interface TrainerRequest
+{
+  fullName:string,
+  email:string,
+  password:string,
+  yearsOfExperience:number,
+  primarySkill:string,
+
+}
+
+export interface TrainerResponse
+{
+  id:string,
+  userId:string,
+  fullName:string,
+  email:string,
+  primarySkill:string,
+  yearsOfExperience:number,
+  status:TrainerApplicationStatus,
+  role:string,
+  createdAt:Date
+}
+
+export interface UpdateTrainerrStatusRequest
+{
+  id:string,
+  status:TrainerApplicationStatus
 }

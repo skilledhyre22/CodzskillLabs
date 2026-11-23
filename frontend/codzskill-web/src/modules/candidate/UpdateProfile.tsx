@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { UserUpdateRequest } from "../../shared/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UpdateUserProfileSchema } from "../../shared/types/schema/UpdateUserProfileSchema";
+import { UpdateUserProfileSchema } from "../../shared/types/schema/auth/UpdateUserProfileSchema";
 import { myProfile, updateMyProfile } from "../../shared/services/authService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";

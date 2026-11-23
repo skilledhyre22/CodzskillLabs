@@ -9,10 +9,13 @@ import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 import type { LoginRequest } from '../../shared/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema } from '../../shared/types/schema/LoginSchema';
+import { loginSchema } from '../../shared/types/schema/auth/LoginSchema';
 import { GoogleLogin } from '@react-oauth/google';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
+  const [password,SetPassword]= useState(false);
   const {
     register,
     handleSubmit,
@@ -96,23 +99,33 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700">
-              Password
-            </label>
+  <label className="block text-sm font-medium text-slate-700">
+    Password
+  </label>
 
-            <input
-              type="password"
-              {...register('password')}
-              className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-violet-500 focus:outline-none"
-            />
+  <div className="relative mt-1">
+    <input
+      type={password ? "text" : "password"}
+      {...register('password')}
+      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 pr-11 text-sm focus:border-violet-500 focus:outline-none"
+    />
 
-            {errors.password && (
-              <p className="mt-1 text-xs font-medium text-rose-600">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+    <button
+      type="button"
+      onClick={() => SetPassword(!password)}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-violet-600"
+      aria-label={password ? "Hide password" : "Show password"}
+    >
+      {password ? <EyeOff size={18} /> : <Eye size={18} />}
+    </button>
+  </div>
 
+  {errors.password && (
+    <p className="mt-1 text-xs font-medium text-rose-600">
+      {errors.password.message}
+    </p>
+  )}
+</div>
           <Button
             type="submit"
             loading={isSubmitting}

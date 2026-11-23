@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import type { SuperAdminUpdateRequest } from "../../shared/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UpdateUserProfileSchema } from "../../shared/types/schema/UpdateUserProfileSchema";
+import { UpdateUserProfileSchema } from "../../shared/types/schema/auth/UpdateUserProfileSchema";
 import { useNavigate, useParams } from "react-router-dom";
 import { getUserById,  updateUser } from "../../shared/services/userService";
 import { toast } from "react-toastify";
