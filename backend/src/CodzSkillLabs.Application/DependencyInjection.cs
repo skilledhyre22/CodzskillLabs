@@ -1,4 +1,5 @@
-﻿using CodzSkillLabs.Application.Interfaces.IService;
+﻿using System.Reflection;
+using CodzSkillLabs.Application.Interfaces.IService;
 using CodzSkillLabs.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,9 @@ namespace CodzSkillLabs.Application
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ITrainerService, TrainerService>();
+            services.AddScoped<ICourseService, CourseService>();
+            services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
             return services;
         }
     }

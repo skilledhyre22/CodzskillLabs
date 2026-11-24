@@ -24,12 +24,17 @@ namespace CodzSkillLabs.API.MiddleWare
 
             app.UseRateLimiter();
 
+            app.UseStaticFiles();
+
             app.UseAuthentication();
 
             app.UseAuthorization();
 
+            
 
             app.MapControllers();
+
+            app.UseExceptionHandler();
 
             app.UseResultResponseMiddleware();
 

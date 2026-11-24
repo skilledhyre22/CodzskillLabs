@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import type { TrainerResponse } from "..";
 import { getPendingApplications } from "../../services/trainerService";
-import UpdateTrainerStatus from "./UpdateTrainerStatus";
+// import UpdateTrainerStatus from "./UpdateTrainerStatus";
 
 const GetPendingApplication = () => {
   const [trainers, setTrainers] = useState<TrainerResponse[]>([]);
@@ -39,7 +39,7 @@ const GetPendingApplication = () => {
         </div>
 
         <span className="w-fit rounded-full bg-yellow-100 px-4 py-2 text-sm font-semibold text-yellow-700">
-          {trainers.length} Pending Applications
+          {/* {trainers.length} Pending Applications */}
         </span>
       </div>
 
@@ -87,13 +87,13 @@ const GetPendingApplication = () => {
                   </div>
                 </div>
 
-                <span className="shrink-0 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+                {/* <span className="shrink-0 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
                   {trainer.status === 1
                     ? "Pending"
                     : trainer.status === 2
                     ? "Approved"
                     : "Rejected"}
-                </span>
+                </span> */}
               </div>
 
               <div className="my-5 border-t border-slate-100" />
@@ -132,11 +132,11 @@ const GetPendingApplication = () => {
 
               {/* Actions */}
               {/* Actions */}
-<UpdateTrainerStatus
+{/* <UpdateTrainerStatus
   id={trainer.id}
   currentStatus={trainer.status}
   onUpdated={fetchApplications}
-/>
+/> */}
             </div>
           ))}
         </div>

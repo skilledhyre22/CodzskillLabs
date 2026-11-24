@@ -24,6 +24,7 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
         Task<int> ExecuteAsync<TEntity>(string sql, object? param = default, CommandType commandType = CommandType.Text, IDbTransaction? transaction = null);
 
         Task<IEnumerable<T>> GetAllAsync(int pageNo, int pageSize);
+        Task<IEnumerable<T>> GetAllAsync();
         #endregion
     }
 }

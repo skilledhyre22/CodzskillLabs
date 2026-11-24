@@ -76,7 +76,7 @@ namespace CodzSkillLabs.Application.Services
 
             await userRoleRepository.AddAsync(userRole);
 
-            var application = new Trainer
+            var trainer = new Trainer
             {
                 UserId = user.Id,
                 PrimarySkill = model.PrimarySkill,
@@ -84,7 +84,7 @@ namespace CodzSkillLabs.Application.Services
                 Status = TrainerApplicationStatus.Pending
             };
 
-            await trainerRepository.AddAsync(application);
+            await trainerRepository.AddAsync(trainer);
 
             var result = await unitOfWork.SaveChangesAsync();
 
@@ -92,7 +92,7 @@ namespace CodzSkillLabs.Application.Services
             {
                 transaction.Commit();
 
-                var response = mapper.Map<TrainerResponse>(application);
+                var response = mapper.Map<TrainerResponse>(trainer);
                 response.Email = user.Email;
                 response.FullName = user.FirstName + " " + user.LastName;
                 response.Role = role.Name;

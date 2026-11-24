@@ -65,6 +65,11 @@ namespace CodzSkillLabs.InfraStructure.Repositories
             return (await connection.QueryFirstOrDefaultAsync<TEntity>(sql, param, transaction, null, commandType))!;
         }
 
+        public async Task<IEnumerable<T>> GetAllAsync()
+        {
+            return await context.Set<T>().ToListAsync();
+        }
+
 
 
         #endregion

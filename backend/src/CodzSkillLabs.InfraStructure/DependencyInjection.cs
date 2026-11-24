@@ -1,4 +1,5 @@
 ﻿using CodzSkillLabs.Application.Identity;
+using CodzSkillLabs.Application.Interfaces;
 using CodzSkillLabs.Application.Interfaces.IAppEncryption;
 using CodzSkillLabs.Application.Interfaces.IJWTProvider;
 using CodzSkillLabs.Application.Interfaces.IRepository;
@@ -31,6 +32,9 @@ namespace CodzSkillLabs.InfraStructure
             services.AddScoped<IJWTProvider, JWTProvider.JWTProvider>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ITrainerRepository, TrainerRepository>();
+            services.AddScoped<ICourseRepository, CourseRepository>();
+            services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
+            
 
             return services;
         }

@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Threading.RateLimiting;
 using Carter;
+using CodzSkillLabs.API.MiddleWare;
 using CodzSkillLabs.Application;
 using CodzSkillLabs.InfraStructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,7 +16,8 @@ namespace CodzSkillLabs.API
            services.AddCarter();
             services.AddCors();
             services.AddControllers();
-
+            services.AddExceptionHandler<GlobalExceptionMiddleware>();
+            services.AddProblemDetails();
             services.AddRateLimiter(options =>
             {
                 
