@@ -13,6 +13,16 @@ import ViewUserDetails from "./pages/superadmin/ViewUserDetails";
 import UpdateUser from "./pages/superadmin/UpdateUser";
 import GetAllUsers from "./pages/superadmin/GetAllUsers";
 import TrainerApply from "./pages/trainer/TrainerApply";
+import CreateCourse from "./pages/course/CreateCourse";
+import GetAllCourses from "./pages/course/GetAllCourses";
+import GetCourseDetails from "./pages/course/GetCourseDetails";
+import UpdateCourse from "./pages/course/UpdateCourse";
+import UpdateCourseStatus from "./pages/course/UpdateCourseStatus";
+import TrainerDashboard from "./modules/trainer/TrainerDashBoardPage";
+import GetAllTrainers from "./pages/trainer/GetAllTrainers";
+import GetTrainerDetails from "./pages/trainer/GetTrainerDetails";
+import UpdateTrainerDetails from "./pages/trainer/UpdateTrainerDetails";
+
 
 // // import { AuthProvider } from './app/providers/AuthProvider';
 
@@ -47,10 +57,29 @@ export const App: React.FC = () => {
             <Route path="/update-candidate-profile" element={<UpdateProfile/>}></Route>
             <Route path="/learner-dashboardPage" element={<LearnerDashBoardPage/>}></Route>
             <Route path="/superadmin-dashboardPage" element={<SuperAdminDashboard/>}></Route>
+          {/* <Route path="/unauthorized" element={<Unauthorized />} /> */}
+
+<Route
+  path="/trainer-dashboardPage"
+  element={
+    
+      <TrainerDashboard />
+    
+  }
+/>
+<Route/>
             <Route path="/get-all-users" element={<GetAllUsers/>}></Route>
             <Route path="/user/:id" element={<ViewUserDetails/>}></Route>
             <Route path="/update-user/:id" element={<UpdateUser/>}></Route>
             <Route path="/trainer-apply" element={<TrainerApply/>}></Route>
+            <Route path="/get-all-trainers" element={<GetAllTrainers/>}></Route>
+            <Route path="/trainer/:id" element={<GetTrainerDetails/>}></Route>
+            <Route path="/update-trainer-details/:id" element={<UpdateTrainerDetails/>}></Route>
+            <Route path="/create-course" element={<CreateCourse/>}></Route>
+            <Route path="/get-all-courses" element={<GetAllCourses/>}></Route>
+            <Route path="/course/:id" element={<GetCourseDetails/>}></Route>
+            <Route path="/update-course/:id" element={<UpdateCourse/>}></Route>
+            <Route path="/update-course-status/:id" element={<UpdateCourseStatus/>}></Route>
            </Routes>
           </BrowserRouter>
           </> 

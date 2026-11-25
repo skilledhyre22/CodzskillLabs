@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using CodzSkillLabs.Domain.Enums;
 
 namespace CodzSkillLabs.Application.DTOs.Trainer
 {
-    public class UpdateTrainerStatusRequest
+    public class TrainerUpdateRequest
     {
         public Guid Id { get; set; }
 
-        public TrainerApplicationStatus Status {  get; set; }
+        public string PrimarySkill { get; set; } = string.Empty;
+
+        public int YearsOfExperience { get; set; }
     }
 }

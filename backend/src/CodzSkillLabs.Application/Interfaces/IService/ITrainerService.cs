@@ -9,12 +9,10 @@ namespace CodzSkillLabs.Application.Interfaces.IService
     public interface ITrainerService
     {
         Task<Result<TrainerResponse>> AddTrainer(TrainerRequest model);
-
-        Task<Result<IEnumerable<TrainerResponse>>> GetPendingApplications();
         Task<Result<TrainerResponse>> GetTrainerById(Guid id);
 
-        Task<Result<TrainerResponse>> TrainerStatusUpdate(UpdateTrainerStatusRequest model);
-
+        Task<Result<TrainerResponse>> UpdateTrainer(TrainerUpdateRequest model);
+        Task<Result<IEnumerable<TrainerResponse>>> GetAllTrainers();
 
     }
 }

@@ -1,10 +1,18 @@
+import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
 
-const ProtectedRoute = () => {
-  return (
-    <div>
-      
-    </div>
-  )
+interface ProtectedRouteProps {
+  children: ReactNode;
 }
 
-export default ProtectedRoute
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const role = localStorage.getItem("role");
+
+  if (role !== "Trainer") {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+export default ProtectedRoute;

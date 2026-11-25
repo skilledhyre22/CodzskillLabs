@@ -27,7 +27,7 @@ namespace CodzSkillLabs.API
                         factory: _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = 3,
-                            Window = TimeSpan.FromMinutes(2),
+                            Window = TimeSpan.FromSeconds(2),
                             QueueLimit = 0,
                             AutoReplenishment = true
                         }));
@@ -39,7 +39,7 @@ namespace CodzSkillLabs.API
                         factory: _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = 3,
-                            Window = TimeSpan.FromMinutes(2),
+                            Window = TimeSpan.FromSeconds(2),
                             QueueLimit = 0,
                             AutoReplenishment = true
                         }));

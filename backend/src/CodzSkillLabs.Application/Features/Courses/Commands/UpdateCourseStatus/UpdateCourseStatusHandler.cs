@@ -14,7 +14,7 @@ namespace CodzSkillLabs.Application.Features.Courses.Commands.UpdateCourseStatus
     {
         public async Task<Result<CourseResponse>> Handle(UpdateCourseStatusCommand request, CancellationToken cancellationToken)
         {
-            var course = await courseRepository.GetByIdAsync(request.model.Id);
+            var course = await courseRepository.GetByIdAsync(request.id);
             if(course is null)
             {
                 return Result<CourseResponse>.Failure("No Course Found", 404);

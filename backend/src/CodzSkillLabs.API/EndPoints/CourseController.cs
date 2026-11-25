@@ -45,9 +45,9 @@ namespace CodzSkillLabs.API.EndPoints
         }
 
         [HttpPut("update-status/{id:guid}")]
-        public async Task<Result<CourseResponse>> ChangeCourseStatus(CourseUpdateStatus model)
+        public async Task<Result<CourseResponse>> ChangeCourseStatus([FromRoute] Guid id,[FromBody]CourseUpdateStatus model)
         {
-            return await sender.Send(new UpdateCourseStatusCommand(model));
+            return await sender.Send(new UpdateCourseStatusCommand(id,model));
         }
 
         [HttpGet("pending-courses")]
@@ -65,7 +65,7 @@ namespace CodzSkillLabs.API.EndPoints
         [HttpGet("search-course")]
         public async Task<Result<IEnumerable<CourseResponse>>> SearchCourse([FromQuery] string name)
         {
-            return await sender.Send(new SearchCourseQuery(name));
+                return await sender.Send(new SearchCourseQuery(name));
         }
 
         [HttpGet("filter-course")]

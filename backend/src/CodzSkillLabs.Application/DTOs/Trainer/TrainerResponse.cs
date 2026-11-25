@@ -19,8 +19,6 @@ namespace CodzSkillLabs.Application.DTOs.Trainer
 
         public int YearsOfExperience { get; set; }
 
-        public TrainerApplicationStatus Status { get; set; }
-
         public string Role { get; set; } = string.Empty;
 
         public DateTimeOffset CreatedAt { get; set; }

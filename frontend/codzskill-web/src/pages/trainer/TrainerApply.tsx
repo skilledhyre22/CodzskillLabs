@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import type { TrainerRequest } from "../../shared/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TrainerApplySchema } from "../../shared/types/trainer/TrainerApplySchema";
+import { TrainerApplySchema } from "../../shared/types/schema/trainer/TrainerApplySchema";
 import { trainerRegistration } from "../../shared/services/trainerService";
 import { toast } from "react-toastify";
 

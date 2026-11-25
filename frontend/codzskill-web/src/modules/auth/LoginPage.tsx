@@ -32,7 +32,7 @@ export const LoginPage: React.FC = () => {
     if (userRoles.includes('candidate')) {
       navigate('/learner-dashboardPage');
     } else if (userRoles.includes('trainer')) {
-      navigate('/trainer-dashboard');
+      navigate('/trainer-dashboardPage');
     } else if (userRoles.includes('superadmin')) {
       navigate('/superadmin-dashboardPage');
     } else {

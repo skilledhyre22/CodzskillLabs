@@ -6,6 +6,7 @@ using CodzSkillLabs.Application.DTOs.Auth;
 using CodzSkillLabs.Application.DTOs.Course;
 using CodzSkillLabs.Application.DTOs.Role;
 using CodzSkillLabs.Application.DTOs.Trainer;
+using CodzSkillLabs.Application.Services;
 using CodzSkillLabs.Domain.Entitites;
 
 namespace CodzSkillLabs.Application.Mappings
@@ -34,8 +35,8 @@ namespace CodzSkillLabs.Application.Mappings
         public TrainerProfile()
         {
             CreateMap<TrainerRequest, Course>().ReverseMap();
-            CreateMap<Course, TrainerResponse>().ReverseMap();
-            CreateMap<UpdateTrainerStatusRequest, Course>().ReverseMap();
+            CreateMap<Trainer, TrainerResponse>().ReverseMap();
+            CreateMap<TrainerUpdateRequest, Trainer>().ReverseMap();
         }
     }
     public class CourseProfile : Profile

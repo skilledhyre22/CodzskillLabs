@@ -1,4 +1,4 @@
-import { apiClient } from "../api/axiosInstance";
+import { apiClient, authToken } from "../api/axiosInstance";
 import type { GoogleLoginRequest, LoginRequest, LoginResponse, SignUpRequest, SignUpResponse, UserProfileResponse, UserUpdateRequest } from "../types";
 import type { Result } from "../utilis/result";
 
@@ -22,3 +22,12 @@ export const updateMyProfile=async(model:UserUpdateRequest):Promise<Result<UserP
   return (await apiClient.put<Promise<Result<UserProfileResponse>>>("auth/update-profile",model))?.data
 }
 
+export const getUserRole = () => {
+  const token = localStorage.getItem(authToken);
+
+  if (!token) return null;
+
+  const payload = JSON.parse(atob(token.split(".")[1]));
+
+  return payload.role;
+};

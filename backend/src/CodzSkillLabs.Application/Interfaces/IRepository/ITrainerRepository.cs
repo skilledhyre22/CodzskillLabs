@@ -8,7 +8,7 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
 {
     public interface ITrainerRepository:IBaseRepository<Trainer>
     {
-        Task<IEnumerable<TrainerResponse>> GetPendingApplication();
+        Task<IEnumerable<TrainerResponse>> GetAllTrainers();
 
         Task<TrainerResponse> GetTrainerById(Guid id);
         

@@ -11,17 +11,11 @@ using CodzSkillLabs.Application.Utility;
 using CodzSkillLabs.Domain.Entitites;
 using CodzSkillLabs.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CodzSkillLabs.Application.Services
 {
-    public class TrainerService(
-     IAuthRepository authRepository,
-     IMapper mapper,
-     ITrainerRepository trainerRepository,
-     IUnitOfWork unitOfWork,
-     IAppEncryption appEncryption,
-     IRoleRepository roleRepository,
-     IUserRoleRepository userRoleRepository) : ITrainerService
+    public class TrainerService(IAuthRepository authRepository,IMapper mapper,ITrainerRepository trainerRepository,IUnitOfWork unitOfWork,IAppEncryption appEncryption,IRoleRepository roleRepository,IUserRoleRepository userRoleRepository) : ITrainerService
     {
         public async Task<Result<TrainerResponse>> AddTrainer(TrainerRequest model)
         {
@@ -81,7 +75,6 @@ namespace CodzSkillLabs.Application.Services
                 UserId = user.Id,
                 PrimarySkill = model.PrimarySkill,
                 YearsOfExperience = model.YearsOfExperience,
-                Status = TrainerApplicationStatus.Pending
             };
 
             await trainerRepository.AddAsync(trainer);
@@ -109,14 +102,15 @@ namespace CodzSkillLabs.Application.Services
                 500);
         }
 
-        public async Task<Result<IEnumerable<TrainerResponse>>> GetPendingApplications()
+        public async  Task<Result<IEnumerable<TrainerResponse>>> GetAllTrainers()
         {
-            var trainers = await trainerRepository.GetPendingApplication();
-            if (trainers is not null)
+            var trainers = await trainerRepository.GetAllTrainers();
+            if(trainers is not null)
             {
-                return Result<IEnumerable<TrainerResponse>>.Success(trainers, "Pending Applications Fetched", 200);
+                return Result<IEnumerable<TrainerResponse>>.Success(trainers, "All Trainers Fetched", 200);
             }
-            return Result<IEnumerable<TrainerResponse>>.Failure("Something went wrong try again later...", 400);
+            return Result<IEnumerable<TrainerResponse>>.Failure("No trainer found", 400);
+
         }
 
         public async Task<Result<TrainerResponse>> GetTrainerById(Guid id)
@@ -156,7 +150,7 @@ namespace CodzSkillLabs.Application.Services
             );
         }
 
-        public async Task<Result<TrainerResponse>> TrainerStatusUpdate(UpdateTrainerStatusRequest model)
+        public async Task<Result<TrainerResponse>> UpdateTrainer(TrainerUpdateRequest model)
         {
             var trainer = await trainerRepository.GetByIdAsync(model.Id);
 
@@ -165,43 +159,23 @@ namespace CodzSkillLabs.Application.Services
                 return Result<TrainerResponse>.Failure("No Trainer Found", 404);
             }
 
-            var user = await authRepository.GetByIdAsync(trainer.UserId);
-
-            if (user is null)
-            {
-                return Result<TrainerResponse>.Failure("No User Found", 404);
-            }
-
-            trainer.Status = model.Status;
+            mapper.Map(model, trainer);
 
             await trainerRepository.UpdateAsync(trainer);
+            await unitOfWork.SaveChangesAsync();
 
-            var returnValue = await unitOfWork.SaveChangesAsync();
+            var updatedTrainer = await GetTrainerById(model.Id);
 
-            if (returnValue > 0)
+            if (!updatedTrainer.IsSuccess)
             {
-                var response = mapper.Map<TrainerResponse>(trainer);
-
-                response.Email = user.Email;
-                response.FullName = user.FirstName + " " + user.LastName;
-
-                var userRole = await userRoleRepository
-                    .FirstOrDefaultAsync(x => x.UserId == user.Id);
-
-                if (userRole is not null)
-                {
-                    var role = await roleRepository.GetByIdAsync(userRole.RoleId);
-                    response.Role = role?.Name ?? string.Empty;
-                }
-
-                var message = model.Status == TrainerApplicationStatus.Approved
-                    ? "Trainer Status Approved"
-                    : "Trainer Status Rejected";
-
-                return Result<TrainerResponse>.Success(response, message, 200);
+                return Result<TrainerResponse>.Failure(
+                    updatedTrainer.Message, updatedTrainer.StatusCode);
             }
 
-            return Result<TrainerResponse>.Failure("Unable to update trainer status", 400);
+            return Result<TrainerResponse>.Success(
+                updatedTrainer.Data,
+                "Trainer Updated Successfully",
+                200);
         }
     }
 }

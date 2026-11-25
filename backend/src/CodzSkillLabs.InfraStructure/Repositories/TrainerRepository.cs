@@ -12,7 +12,7 @@ namespace CodzSkillLabs.InfraStructure.Repositories
 {
     public class TrainerRepository(CodzSkillLabsDbContext context) : BaseRepository<Trainer>(context), ITrainerRepository
     {
-        public async Task<IEnumerable<TrainerResponse>> GetPendingApplication()
+        public async Task<IEnumerable<TrainerResponse>> GetAllTrainers()
         {
 
             var query = $@"
@@ -23,14 +23,12 @@ namespace CodzSkillLabs.InfraStructure.Repositories
                         U.Email,
                         T.PrimarySkill,
                         T.YearsOfExperience,
-                        T.Status,
                         T.CreatedAt,
                         R.Name AS Role
                     FROM Trainers T
                     INNER JOIN Users U ON T.UserId = U.Id
                     LEFT JOIN UserRoles UR ON U.Id = UR.UserId
                     LEFT JOIN Roles R ON UR.RoleId = R.Id
-                    WHERE T.Status = 1;
                 ";
             return await QueryAsync<TrainerResponse>(query);
 
@@ -48,7 +46,6 @@ namespace CodzSkillLabs.InfraStructure.Repositories
                         U.Email,
                         T.PrimarySkill,
                         T.YearsOfExperience,
-                        T.Status,
                         T.CreatedAt,
                         R.Name AS Role
                     FROM Trainers T

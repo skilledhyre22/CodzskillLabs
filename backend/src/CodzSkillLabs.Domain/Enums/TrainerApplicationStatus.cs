@@ -4,12 +4,7 @@ using System.Text;
 
 namespace CodzSkillLabs.Domain.Enums
 {
-        public enum TrainerApplicationStatus:byte
-        {
-            Pending = 1,
-            Approved = 2,
-            Rejected = 3
-        }
+    
     public enum CourseCategory:byte
     {
         Development=1,

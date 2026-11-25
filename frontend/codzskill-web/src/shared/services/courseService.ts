@@ -1,54 +1,39 @@
+import { apiClient } from "../api/axiosInstance";
+import type { CourseRequest, CourseResponse, CourseUpdateRequest, CourseUpdateStatus } from "../types";
+import type { Result } from "../utilis/result";
 
-// import apiClient from '../api/axiosInstance';
-// import { API_CONFIG } from '../api/apiEndPoints';
-// import type { CohortDetails, Course } from '../types';
-// import { MOCK_COHORT_DETAIL, MOCK_COURSES } from '../services/mockData';
+export const createCourse=async(model:CourseRequest):Promise<Result<CourseResponse>>=>{
+    return (await apiClient.post<Result<CourseResponse>>("course/create-course",model))?.data;
+}
 
-// export const courseService = {
-//   async getCourses(): Promise<Course[]> {
-//     if (!API_CONFIG.useMockData) {
-//       const { data } = await apiClient.get<Course[]>(API_CONFIG.endpoints.courses.list);
-//       return data;
-//     }
+export const getPublishedCourses=async():Promise<Result<CourseResponse[]>>=>{
+    return (await apiClient.get<Result<CourseResponse[]>>("course/published-courses"))?.data;
+}
 
-//     await new Promise((res) => setTimeout(res, 250));
-//     return MOCK_COURSES;
-//   },
+export const getPendingCourses=async():Promise<Result<CourseResponse[]>>=>{
+    return (await apiClient.get<Result<CourseResponse[]>>("course/pending-courses"))?.data;
+}
 
-//   async getCohortBySlug(slug: string): Promise<CohortDetails> {
-//     if (!API_CONFIG.useMockData) {
-//       const { data } = await apiClient.get<CohortDetails>(
-//         `${API_CONFIG.endpoints.courses.cohortBySlug}/${slug}`
-//       );
-//       return data;
-//     }
+export const getCourseById=async(id:string):Promise<Result<CourseResponse>>=>{
+    return (await apiClient.get<Result<CourseResponse>>("course/"+id))?.data;
+}
 
-//     await new Promise((res) => setTimeout(res, 250));
-//     const matched = MOCK_COURSES.find((c) => c.slug === slug);
+export const getAllCourses=async():Promise<Result<CourseResponse[]>>=>{
+    return (await apiClient.get<Result<CourseResponse[]>>("course/all-courses"))?.data;
+}
 
-//     if (!matched) return MOCK_COHORT_DETAIL;
+export const updateCourse = async (id: string,model: CourseUpdateRequest): Promise<Result<CourseResponse>> => {
+    return (await apiClient.put<Result<CourseResponse>>(`course/update-course/${id}`, model)).data;
+};
 
-//     return {
-//       ...MOCK_COHORT_DETAIL,
-//       ...matched,
-//       title: `${matched.title} – Live Cohort`,
-//     };
-//   },
+export const updateStatus = async (id: string,model: CourseUpdateStatus): Promise<Result<CourseResponse>> => {
+    return (await apiClient.put<Result<CourseResponse>>(`course/update-status/${id}`, model)).data;
+};
 
-//   async enrollInCohort(cohortId: string): Promise<{ enrollmentId: string; message: string }> {
-//     if (!API_CONFIG.useMockData) {
-//       const { data } = await apiClient.post<{ enrollmentId: string; message: string }>(
-//         API_CONFIG.endpoints.courses.enroll,
-//         { cohortId }
-//       );
-//       return data;
-//     }
+export const searchCourses=async(name:string):Promise<Result<CourseResponse[]>>=>{
+    return (await apiClient.get<Result<CourseResponse[]>>(`course/search-course/?name=${name}`))?.data;
+}
 
-//     await new Promise((res) => setTimeout(res, 400));
-
-//     return {
-//       enrollmentId: `ENR-${Math.floor(10000 + Math.random() * 90000)}`,
-//       message: 'Successfully enrolled! Your seat and live lab access are confirmed.',
-//     };
-//   },
-// };
+export const filterCourse=async(price:number):Promise<Result<CourseResponse[]>>=>{
+    return (await apiClient.get<Result<CourseResponse[]>>(`course/filter-course/?price=${price}`))?.data;
+}

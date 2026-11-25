@@ -1,4 +1,4 @@
-import type { TrainerApplicationStatus } from "../enums/Enums"
+import type { CourseCategory, CourseStatus } from "../enums/Enums"
 
 export interface SignUpRequest
 {
@@ -116,6 +116,14 @@ export interface TrainerRequest
 
 }
 
+export interface TrainerUpdateRequest
+{
+  id:string,
+  yearsOfExperience:number,
+  primarySkill:string,
+
+}
+
 export interface TrainerResponse
 {
   id:string,
@@ -124,13 +132,42 @@ export interface TrainerResponse
   email:string,
   primarySkill:string,
   yearsOfExperience:number,
-  status:TrainerApplicationStatus,
   role:string,
   createdAt:Date
 }
 
-export interface UpdateTrainerrStatusRequest
+
+
+export interface CourseRequest
+{
+  title:string,
+  description?:string,
+  category:CourseCategory,
+  price:number,
+  badgeLabel?:string
+}
+
+export interface CourseResponse
 {
   id:string,
-  status:TrainerApplicationStatus
+  title:string,
+  description?:string,
+  category:CourseCategory,
+  price:number,
+  badgeLabel?:string,
+  status:CourseStatus
+}
+export interface CourseUpdateRequest
+{
+  id:string,
+  title:string,
+  description?:string,
+  category:CourseCategory,
+  price:number,
+  badgeLabel?:string,
+}
+
+export interface CourseUpdateStatus
+{
+  status:CourseStatus
 }

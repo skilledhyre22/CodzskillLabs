@@ -7,7 +7,6 @@ namespace CodzSkillLabs.Application.DTOs.Course
 {
     public class CourseUpdateStatus
     {
-        public Guid Id {  get; set; }
 
         public CourseStatus Status { get; set; }
     }

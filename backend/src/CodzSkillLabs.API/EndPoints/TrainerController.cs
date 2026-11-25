@@ -18,27 +18,25 @@ namespace CodzSkillLabs.API.EndPoints
         }
 
         [Authorize]
-        [HttpGet("get-pending-applications")]
-        public async Task<Result<IEnumerable<TrainerResponse>>> GetPendingApplications()
-        {
-            return await trainerService.GetPendingApplications();
-        }
-
-        [Authorize]
-        [HttpPut("update-trainer-status/{id:guid}")]
-        public async Task<Result<TrainerResponse>> TrainerStatusUpdate(UpdateTrainerStatusRequest model)
-        {
-            return await trainerService.TrainerStatusUpdate(model);
-        }
-
-
-        [Authorize]
         [HttpGet("{id:guid}")]
         public async Task<Result<TrainerResponse>> GetTrainerById(Guid id)
         {
             return await trainerService.GetTrainerById(id);
         }
 
+        [Authorize]
+        [HttpGet("all-trainers")]
+        public async Task<Result<IEnumerable<TrainerResponse>>> GetAllTrainers()
+        {
+            return await trainerService.GetAllTrainers();
+        }
+
+        [Authorize]
+        [HttpPut("update-trainer")]
+        public async Task<Result<TrainerResponse>> UpdateTrainer(TrainerUpdateRequest model)
+        {
+            return await trainerService.UpdateTrainer(model);
+        }
 
     }
 }

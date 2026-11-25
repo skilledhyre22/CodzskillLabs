@@ -7,3 +7,10 @@ export const TrainerApplySchema=z.object({
   primarySkill:z.string().nonempty("SkillSet is Required"),
   yearsOfExperience:z.number("Experience is Required"),
 })
+
+
+export const TrainerUpdateSchema=z.object({
+  id:z.string().nonempty(),
+  primarySkill:z.string().nonempty("SkillSet is Required"),
+  yearsOfExperience:z.number("Experience is Required"),
+})

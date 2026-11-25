@@ -7,7 +7,7 @@ using MediatR;
 
 namespace CodzSkillLabs.Application.Features.Courses.Commands.UpdateCourseStatus
 {
-    public record UpdateCourseStatusCommand(CourseUpdateStatus model):IRequest<Result<CourseResponse>>
+    public record UpdateCourseStatusCommand(Guid id,CourseUpdateStatus model):IRequest<Result<CourseResponse>>
     {
 
     }

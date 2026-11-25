@@ -19,8 +19,6 @@ namespace CodzSkillLabs.Domain.Entitites
 
             public int YearsOfExperience { get; set; }
 
-            public TrainerApplicationStatus Status { get; set; } = TrainerApplicationStatus.Pending;
-
         }
     }
 
