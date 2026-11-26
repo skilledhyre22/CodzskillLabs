@@ -8,7 +8,7 @@ import { CourseStatus } from "../../shared/enums/Enums";
 
 import {
   filterCourse,
-  getAllCourses,
+  getPublishedCourses,
   searchCourses,
 } from "../../shared/services/courseService";
 
@@ -26,35 +26,42 @@ const GetTrainerCourses = () => {
       ? Math.max(...courses.map((course) => course.price))
       : 0;
 
+  // Fetch Published Courses
   const fetchCourses = async () => {
     setLoading(true);
 
-    const response = await getAllCourses();
+    try {
+      const response = await getPublishedCourses();
 
-    if (response.isSuccess) {
-      // Only approved courses will be displayed
-      const approvedCourses = response.data.filter(
-        (course) => course.status === CourseStatus.Approved
-      );
+      if (response.isSuccess) {
+        const approvedCourses = (response.data ?? []).filter(
+          (course) => course.status === CourseStatus.Approved
+        );
 
-      setCourses(approvedCourses);
-      setDisplayCourses(approvedCourses);
+        setCourses(approvedCourses);
+        setDisplayCourses(approvedCourses);
 
-      const highestPrice =
-        approvedCourses.length > 0
-          ? Math.max(...approvedCourses.map((course) => course.price))
-          : 0;
+        const highestPrice =
+          approvedCourses.length > 0
+            ? Math.max(...approvedCourses.map((course) => course.price))
+            : 0;
 
-      setPrice(highestPrice);
-    } else {
+        setPrice(highestPrice);
+      } else {
+        setCourses([]);
+        setDisplayCourses([]);
+        toast.error(response.problemDetails?.title);
+      }
+    } catch (error) {
       setCourses([]);
       setDisplayCourses([]);
-      toast.error(response.problemDetails?.title);
+      toast.error("Unable to fetch courses");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  // Search Courses
   const searchCourse = async () => {
     if (!search.trim()) {
       toast.error("Please enter course name");
@@ -63,45 +70,58 @@ const GetTrainerCourses = () => {
 
     setLoading(true);
 
-    const response = await searchCourses(search.trim());
+    try {
+      const response = await searchCourses(search.trim());
 
-    if (response.isSuccess) {
-      const approvedCourses = response.data.filter(
-        (course) => course.status === CourseStatus.Approved
-      );
+      if (response.isSuccess) {
+        const approvedCourses = (response.data ?? []).filter(
+          (course) => course.status === CourseStatus.Approved
+        );
 
-      setDisplayCourses(approvedCourses);
-    } else {
+        setDisplayCourses(approvedCourses);
+      } else {
+        setDisplayCourses([]);
+        toast.error(response.problemDetails?.title);
+      }
+    } catch (error) {
       setDisplayCourses([]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  // Filter Trainer's Courses By Price
   const filterCourseByPrice = async () => {
     setLoading(true);
 
-    const response = await filterCourse(price);
+    try {
+      const response = await filterCourse(price);
 
-    if (response.isSuccess) {
-      const approvedCourses = response.data.filter(
-        (course) => course.status === CourseStatus.Approved
-      );
+      if (response.isSuccess) {
+        const approvedCourses = (response.data ?? []).filter(
+          (course) => course.status === CourseStatus.Approved
+        );
 
-      setDisplayCourses(approvedCourses);
-    } else {
+        setDisplayCourses(approvedCourses);
+      } else {
+        setDisplayCourses([]);
+        toast.error(response.problemDetails?.title);
+      }
+    } catch (error) {
       setDisplayCourses([]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  // Clear Search And Price Filters
   const clearFilters = () => {
     setSearch("");
     setPrice(maxPrice);
     setDisplayCourses(courses);
   };
 
+  // Get Category Name
   const getCategoryName = (category: number) => {
     switch (category) {
       case 1:
@@ -136,13 +156,6 @@ const GetTrainerCourses = () => {
 
   return (
     <div className="space-y-6">
-         <button
-  type="button"
-  onClick={() => navigate("/create-course")}
-  className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
->
-  + Create Course
-</button>
       {/* Page Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -185,6 +198,13 @@ const GetTrainerCourses = () => {
           >
             + Create Course
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/update-candidate-profile")}
+            className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
+          >
+            + Update Profile
+          </button>
         </div>
       </div>
 
@@ -219,9 +239,7 @@ const GetTrainerCourses = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="font-bold text-slate-800">
-                  Find Courses
-                </h2>
+                <h2 className="font-bold text-slate-800">Find Courses</h2>
                 <p className="mt-1 text-xs text-slate-500">
                   Search by course name or filter by price.
                 </p>
@@ -330,7 +348,7 @@ const GetTrainerCourses = () => {
             </span>
           </div>
 
-          {/* Course Cards */}
+          {/* Course Cards / Empty State */}
           {displayCourses.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-2xl">
@@ -342,6 +360,7 @@ const GetTrainerCourses = () => {
               </h3>
 
               <p className="mt-1 text-sm text-slate-500">
+                No courses found for your search or selected price.
                 Try changing your search keyword or price filter.
               </p>
 
@@ -384,6 +403,16 @@ const GetTrainerCourses = () => {
                         {course.title}
                       </h3>
                     </div>
+                  </div>
+
+                  <div className="mb-4 rounded-xl bg-indigo-50 p-3">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-400">
+                      Created By
+                    </p>
+
+                    <p className="mt-1 truncate text-sm font-semibold text-indigo-800">
+                      {course.courseCreatedBy || "Unknown"}
+                    </p>
                   </div>
 
                   {/* Card Body */}

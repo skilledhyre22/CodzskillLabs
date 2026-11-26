@@ -12,6 +12,8 @@ namespace CodzSkillLabs.Application.DTOs.Course
         public string? Description {  get; set; } = string.Empty;
         public string? BadgeLabel {  get; set; } = string.Empty;
         public decimal Price { get; set; }
+        public Guid UserId { get; set; }
+        public string CourseCreatedBy { get; set; }= string.Empty;
         public CourseCategory Category { get; set; }
         public CourseStatus Status { get; set; }
     }

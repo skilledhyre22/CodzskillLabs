@@ -107,22 +107,30 @@ namespace CodzSkillLabs.Application.Services
             return Result<bool>.Failure("User deletion failed", 400);
         }
 
-        public async Task<Result<IEnumerable<UserListResponse>>> FilterUsers(string? role,bool? isActive,bool? isDeleted)
+        public async Task<Result<IEnumerable<UserListResponse>>> FilterUsers(
+     string? role,
+     bool? isActive,
+     bool? isDeleted)
         {
-            var users = await authRepository.FilterUsers(role, isActive, isDeleted);
+            var users = await authRepository.FilterUsers(
+                role, isActive, isDeleted);
 
             if (users is null || !users.Any())
             {
-                return Result<IEnumerable<UserListResponse>>.Failure(
+                return Result<IEnumerable<UserListResponse>>.Success(
+                    Enumerable.Empty<UserListResponse>(),
                     "No users found",
-                    404);
+                    200);
             }
 
             return Result<IEnumerable<UserListResponse>>.Success(
                 users,
-                "Users filtered successfully",
+                "Users fetched successfully",
                 200);
         }
+
+            
+        
 
         public async Task<Result<IEnumerable<UserListResponse>>> GetAllUsers()
         {

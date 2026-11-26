@@ -22,6 +22,89 @@ namespace CodzSkillLabs.InfraStructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.Course", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BadgeLabel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("Category")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.ErrorLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("InnerException")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Source")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StackTrace")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TraceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ErrorLogs");
+                });
+
             modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -58,9 +141,6 @@ namespace CodzSkillLabs.InfraStructure.Migrations
                     b.Property<string>("PrimarySkill")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -151,6 +231,17 @@ namespace CodzSkillLabs.InfraStructure.Migrations
                     b.ToTable("UserRoles");
                 });
 
+            modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.Course", b =>
+                {
+                    b.HasOne("CodzSkillLabs.Domain.Entitites.User", "User")
+                        .WithMany("CreatedCourses")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.Trainer", b =>
                 {
                     b.HasOne("CodzSkillLabs.Domain.Entitites.User", "User")
@@ -188,6 +279,8 @@ namespace CodzSkillLabs.InfraStructure.Migrations
 
             modelBuilder.Entity("CodzSkillLabs.Domain.Entitites.User", b =>
                 {
+                    b.Navigation("CreatedCourses");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618

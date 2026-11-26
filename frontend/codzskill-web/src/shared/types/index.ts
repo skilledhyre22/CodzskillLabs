@@ -155,7 +155,9 @@ export interface CourseResponse
   category:CourseCategory,
   price:number,
   badgeLabel?:string,
-  status:CourseStatus
+  status:CourseStatus,
+  userId:string,
+  courseCreatedBy:string
 }
 export interface CourseUpdateRequest
 {

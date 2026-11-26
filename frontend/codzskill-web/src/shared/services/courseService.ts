@@ -10,9 +10,27 @@ export const getPublishedCourses=async():Promise<Result<CourseResponse[]>>=>{
     return (await apiClient.get<Result<CourseResponse[]>>("course/published-courses"))?.data;
 }
 
-export const getPendingCourses=async():Promise<Result<CourseResponse[]>>=>{
-    return (await apiClient.get<Result<CourseResponse[]>>("course/pending-courses"))?.data;
-}
+export const getCoursesBySearchandPrice = async (
+  name?: string,
+  sortByPrice?: string
+): Promise<Result<CourseResponse[]>> => {
+
+  const params = new URLSearchParams();
+
+  if (name) {
+    params.append("name", name);
+  }
+
+  if (sortByPrice) {
+    params.append("sortByPrice", sortByPrice);
+  }
+
+  return (
+    await apiClient.get<Result<CourseResponse[]>>(
+      `course/super-admin/all-courses?${params.toString()}`
+    )
+  ).data;
+};
 
 export const getCourseById=async(id:string):Promise<Result<CourseResponse>>=>{
     return (await apiClient.get<Result<CourseResponse>>("course/"+id))?.data;

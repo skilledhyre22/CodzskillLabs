@@ -1,78 +1,97 @@
 
 import { useEffect, useState } from "react";
-import type { UserListResponse } from "../../shared/types";
+import type { RoleResponse, UserListResponse } from "../../shared/types";
 import {
   getUsersPagination,
   searchUsers,
   filterUsers,
 } from "../../shared/services/userService";
+import { getRoles } from "../../shared/services/roleService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const GetAllUsers = () => {
   const [users, setUsers] = useState<UserListResponse[]>([]);
+  const [roles, setRoles] = useState<RoleResponse[]>([]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [isSearched, setIsSearched] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const [role, setRole] = useState("");
   const [isActive, setIsActive] = useState("");
   const [isDeleted, setIsDeleted] = useState("");
 
+  const [isSearched, setIsSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const fetchAllUsers = async () => {
-    setLoading(true);
-
-    const response = await getUsersPagination(1, 10);
-
-    if (response.isSuccess) {
-      setUsers(response.data);
-    } else {
-      setUsers([]);
-      toast.error(response.problemDetails?.title);
-    }
-
-    setLoading(false);
+  // Fetch roles dynamically from database
+  const allRoles = () => {
+    getRoles().then((response) => {
+      if (response.isSuccess) {
+        setRoles(response.data ?? []);
+      } else {
+        toast.error(response.problemDetails?.title);
+      }
+    });
   };
 
-  const handleSearch = async () => {
+  // Fetch all users
+  const fetchAllUsers = () => {
+    setLoading(true);
+
+    getUsersPagination(1, 10)
+      .then((response) => {
+        if (response.isSuccess) {
+          setUsers(response.data ?? []);
+        } else {
+          setUsers([]);
+          toast.error(response.problemDetails?.title);
+        }
+      })
+      .finally(() => setLoading(false));
+  };
+
+  // Search users
+  const handleSearch = () => {
     setLoading(true);
     setIsSearched(true);
 
-    const response = await searchUsers(name.trim(), email.trim());
-
-    if (response.isSuccess) {
-      setUsers(response.data);
-    } else {
-      setUsers([]);
-      toast.error(response.problemDetails?.title);
-    }
-
-    setLoading(false);
+    searchUsers(name.trim(), email.trim())
+      .then((response) => {
+        if (response.isSuccess) {
+          setUsers(response.data ?? []);
+        } else {
+          setUsers([]);
+          toast.error(response.problemDetails?.title);
+        }
+      })
+      .finally(() => setLoading(false));
   };
 
-  const handleFilter = async () => {
+  // Filter users
+  const handleFilter = () => {
     setLoading(true);
     setIsSearched(true);
 
-    const response = await filterUsers(
+    filterUsers(
       role || undefined,
       isActive === "" ? undefined : isActive === "true",
       isDeleted === "" ? undefined : isDeleted === "true"
-    );
-
-    if (response.isSuccess) {
-      setUsers(response.data);
-    } else {
-      setUsers([]);
-      toast.error(response.problemDetails?.title);
-    }
-
-    setLoading(false);
+    )
+      .then((response) => {
+        if (response.isSuccess) {
+          setUsers(response.data ?? []);
+        } else {
+          setUsers([]);
+          toast.error(response.problemDetails?.title);
+        }
+      })
+      .finally(() => setLoading(false));
   };
 
+  // Clear search and filters
   const clearFilters = () => {
     setName("");
     setEmail("");
@@ -80,11 +99,13 @@ const GetAllUsers = () => {
     setIsActive("");
     setIsDeleted("");
     setIsSearched(false);
+
     fetchAllUsers();
   };
 
   useEffect(() => {
     fetchAllUsers();
+    allRoles();
   }, []);
 
   return (
@@ -132,35 +153,36 @@ const GetAllUsers = () => {
           </div>
         </div>
 
-        {/* Divider */}
         <div className="my-5 border-t border-slate-200" />
 
         {/* Filters */}
         <div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">
-                Filter Users
-              </h3>
+          <h3 className="text-sm font-bold text-slate-800">
+            Filter Users
+          </h3>
 
-              <p className="mt-1 text-xs text-slate-500">
-                Narrow down users based on their role and account status.
-              </p>
-            </div>
-          </div>
+          <p className="mt-1 text-xs text-slate-500">
+            Narrow down users based on their role and account status.
+          </p>
 
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+            {/* Dynamic Roles */}
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
               className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
             >
               <option value="">All Roles</option>
-              <option value="Candidate">Candidate</option>
-              <option value="Trainer">Trainer</option>
-              <option value="SuperAdmin">SuperAdmin</option>
+
+              {roles.map((item) => (
+                <option key={item.id} value={item.name}>
+                  {item.name}
+                </option>
+              ))}
             </select>
 
+            {/* Active / Inactive */}
             <select
               value={isActive}
               onChange={(e) => setIsActive(e.target.value)}
@@ -171,6 +193,7 @@ const GetAllUsers = () => {
               <option value="false">Inactive</option>
             </select>
 
+            {/* Deleted / Available */}
             <select
               value={isDeleted}
               onChange={(e) => setIsDeleted(e.target.value)}
@@ -219,10 +242,11 @@ const GetAllUsers = () => {
         </span>
       </div>
 
-      {/* Loading */}
+      {/* Loading / Users / Empty State */}
       {loading ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-16">
           <div className="h-9 w-9 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-600" />
+
           <p className="mt-4 text-sm font-medium text-slate-500">
             Loading users...
           </p>
@@ -260,7 +284,6 @@ const GetAllUsers = () => {
                 </span>
               </div>
 
-              {/* Divider */}
               <div className="my-5 border-t border-slate-100" />
 
               {/* Account Details */}

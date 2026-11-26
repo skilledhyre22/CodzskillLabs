@@ -26,6 +26,8 @@ namespace CodzSkillLabs.Domain.Entitites
 
         public string? GoogleId { get; set; } = string.Empty;
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        public ICollection<Course> CreatedCourses { get; set; } = new List<Course>();
     }
 
 }

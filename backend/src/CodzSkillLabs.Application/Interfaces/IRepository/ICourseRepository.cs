@@ -8,11 +8,11 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
 {
     public interface ICourseRepository:IBaseRepository<Course>
     {
-        Task<IEnumerable<Course>> GetPendingCourses();
-        Task<IEnumerable<Course>> GetPublishedCourses();
-        Task<IEnumerable<Course>> SearchCourse(string name);
-        Task<IEnumerable<Course>> FilterCourse(decimal price);
-
+        Task<IEnumerable<CourseResponse>> GetAllCourses();
+        Task<IEnumerable<CourseResponse>> GetPublishedCourses(Guid userId);
+        Task<IEnumerable<Course>> SearchMyCourse(string name,Guid userId);
+        Task<IEnumerable<Course>> FilterMyCourse(decimal price,Guid userId);
+        Task<IEnumerable<Course>> GetAllCourses(string? search, string? sortByPrice);
 
     }
 }

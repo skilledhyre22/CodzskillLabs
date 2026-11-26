@@ -32,7 +32,7 @@ const UpdateProfile = () => {
           });
         
       } 
-        toast.error("Failed to load profile.");
+        toast.error(response.problemDetails?.title);
       
     };
 

@@ -7,9 +7,8 @@ import type { CourseResponse } from "../../shared/types";
 import { CourseStatus } from "../../shared/enums/Enums";
 
 import {
-  filterCourse,
   getAllCourses,
-  searchCourses,
+  getCoursesBySearchandPrice,
 } from "../../shared/services/courseService";
 
 const GetAllCourses = () => {
@@ -18,13 +17,8 @@ const GetAllCourses = () => {
   const [courses, setCourses] = useState<CourseResponse[]>([]);
   const [displayCourses, setDisplayCourses] = useState<CourseResponse[]>([]);
   const [search, setSearch] = useState("");
-  const [price, setPrice] = useState(0);
+  const [sortByPrice, setSortByPrice] = useState("");
   const [loading, setLoading] = useState(true);
-
-  const maxPrice =
-    courses.length > 0
-      ? Math.max(...courses.map((course) => course.price))
-      : 0;
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -34,13 +28,6 @@ const GetAllCourses = () => {
     if (response.isSuccess) {
       setCourses(response.data);
       setDisplayCourses(response.data);
-
-      const highestPrice =
-        response.data.length > 0
-          ? Math.max(...response.data.map((course) => course.price))
-          : 0;
-
-      setPrice(highestPrice);
     } else {
       setCourses([]);
       setDisplayCourses([]);
@@ -50,42 +37,29 @@ const GetAllCourses = () => {
     setLoading(false);
   };
 
-  const searchCourse = async () => {
-    if (!search.trim()) {
-      toast.error("Please enter course name");
-      return;
-    }
-
+  // Search and Sort Courses
+  const searchAndSortCourses = async () => {
     setLoading(true);
 
-    const response = await searchCourses(search.trim());
+    const response = await getCoursesBySearchandPrice(
+      search.trim() || undefined,
+      sortByPrice || undefined
+    );
 
     if (response.isSuccess) {
       setDisplayCourses(response.data);
     } else {
       setDisplayCourses([]);
+      toast.error(response.problemDetails?.title);
     }
 
     setLoading(false);
   };
 
-  const filterCourseByPrice = async () => {
-    setLoading(true);
-
-    const response = await filterCourse(price);
-
-    if (response.isSuccess) {
-      setDisplayCourses(response.data);
-    } else {
-      setDisplayCourses([]);
-    }
-
-    setLoading(false);
-  };
-
+  // Clear Filters
   const clearFilters = () => {
     setSearch("");
-    setPrice(maxPrice);
+    setSortByPrice("");
     setDisplayCourses(courses);
   };
 
@@ -152,13 +126,14 @@ const GetAllCourses = () => {
 
   return (
     <div className="space-y-6">
-          <button
-  type="button"
-  onClick={() => navigate("/create-course")}
-  className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
->
-  + Create Course
-</button>
+      <button
+        type="button"
+        onClick={() => navigate("/create-course")}
+        className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
+      >
+        + Create Course
+      </button>
+
       {/* Page Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -194,15 +169,13 @@ const GetAllCourses = () => {
         </div>
       </div>
 
-      {/* Search & Filter */}
+      {/* Search & Sort */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="font-bold text-slate-800">
-              Find Courses
-            </h2>
+            <h2 className="font-bold text-slate-800">Find Courses</h2>
             <p className="mt-1 text-xs text-slate-500">
-              Search by course name or filter by price.
+              Search by course name or sort by price.
             </p>
           </div>
 
@@ -222,83 +195,61 @@ const GetAllCourses = () => {
               Search Course
             </label>
 
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  🔍
-                </span>
-
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") searchCourse();
-                  }}
-                  placeholder="Enter course name..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={searchCourse}
-                className="rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white transition hover:bg-indigo-700"
-              >
-                Search
-              </button>
-            </div>
-          </div>
-
-          {/* Price Filter */}
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                Maximum Price
-              </label>
-
-              <span className="rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-bold text-indigo-700">
-                ₹{price.toLocaleString("en-IN")}
-              </span>
-            </div>
-
             <input
-              type="range"
-              min="0"
-              max={maxPrice}
-              step="1"
-              value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
-              disabled={maxPrice === 0}
-              className="w-full cursor-pointer accent-indigo-600"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  searchAndSortCourses();
+                }
+              }}
+              placeholder="Enter course name..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
             />
-
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-slate-400">₹0</span>
-
-              <button
-                type="button"
-                onClick={filterCourseByPrice}
-                disabled={maxPrice === 0}
-                className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50"
-              >
-                Apply Price Filter
-              </button>
-
-              <span className="text-xs text-slate-400">
-                ₹{maxPrice.toLocaleString("en-IN")}
-              </span>
-            </div>
           </div>
+
+          {/* Price Sorting */}
+          <div>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
+              Sort By Price
+            </label>
+
+            <select
+              value={sortByPrice}
+              onChange={(e) => setSortByPrice(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">Default</option>
+              <option value="low">Price: Low to High</option>
+              <option value="high">Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-wrap justify-end gap-3">
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+          >
+            Reset
+          </button>
+
+          <button
+            type="button"
+            onClick={searchAndSortCourses}
+            className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
+          >
+            Apply Filters
+          </button>
         </div>
       </div>
 
       {/* Course Listing Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-slate-900">
-            All Courses
-          </h2>
+          <h2 className="text-lg font-bold text-slate-900">All Courses</h2>
           <p className="mt-1 text-xs text-slate-500">
             Review course information and approval status.
           </p>
@@ -321,7 +272,7 @@ const GetAllCourses = () => {
           </h3>
 
           <p className="mt-1 text-sm text-slate-500">
-            Try changing your search keyword or price filter.
+            No courses match your search.
           </p>
 
           <button
@@ -329,7 +280,7 @@ const GetAllCourses = () => {
             onClick={clearFilters}
             className="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-800"
           >
-            Reset Filters
+            Clear Filters
           </button>
         </div>
       ) : (
@@ -369,7 +320,6 @@ const GetAllCourses = () => {
 
               {/* Card Body */}
               <div className="flex flex-1 flex-col p-5">
-                {/* Description */}
                 <div className="mb-5">
                   <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
                     Description
@@ -377,6 +327,17 @@ const GetAllCourses = () => {
 
                   <p className="line-clamp-3 min-h-[60px] text-sm leading-5 text-slate-600">
                     {course.description || "No description available."}
+                  </p>
+                </div>
+
+                {/* Created By */}
+                <div className="mb-4 rounded-xl bg-indigo-50 p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-400">
+                    Created By
+                  </p>
+
+                  <p className="mt-1 truncate text-sm font-semibold text-indigo-800">
+                    {course.courseCreatedBy || "Unknown"}
                   </p>
                 </div>
 
