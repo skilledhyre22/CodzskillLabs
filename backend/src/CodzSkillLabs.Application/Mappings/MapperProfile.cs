@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
 using CodzSkillLabs.Application.DTOs.Auth;
+using CodzSkillLabs.Application.DTOs.Cohort;
 using CodzSkillLabs.Application.DTOs.Course;
 using CodzSkillLabs.Application.DTOs.Role;
 using CodzSkillLabs.Application.DTOs.Trainer;
@@ -28,6 +29,17 @@ namespace CodzSkillLabs.Application.Mappings
         public RoleProfile()
         {
             CreateMap<RoleResponse, Role>().ReverseMap();
+        }
+    }
+
+    public class CohortProfile : Profile
+    {
+        public CohortProfile()
+        {
+            CreateMap<CohortRequest, Cohort>().ReverseMap();
+            CreateMap<CohortUpdateRequest, Cohort>().ReverseMap();
+            CreateMap<CohortResponse, Cohort>().ReverseMap();
+            CreateMap<CohortUpdateStatus, Cohort>().ReverseMap();
         }
     }
     public class TrainerProfile : Profile

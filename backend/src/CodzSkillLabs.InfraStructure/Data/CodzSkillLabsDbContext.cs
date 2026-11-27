@@ -19,6 +19,8 @@ namespace CodzSkillLabs.InfraStructure.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<Trainer> Trainers { get; set; }
+        public DbSet<Candidate> Candidates { get; set; }
+        public DbSet<Cohort> Cohorts { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<ErrorLog> ErrorLogs { get; set; }
 

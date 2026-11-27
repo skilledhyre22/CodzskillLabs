@@ -17,7 +17,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CodzSkillLabs.Application.Services
 {
-    public class AuthService(IAuthRepository authRepository,IMapper mapper,IUnitOfWork unitOfWork,IAppEncryption appEncryption,IRoleRepository roleRepository,IUserRoleRepository userRoleRepository,IJWTProvider jWTProvider,IHttpContextService httpContextService,IConfiguration configuration) : IAuthService
+    public class AuthService(IAuthRepository authRepository,IMapper mapper,IUnitOfWork unitOfWork,IAppEncryption appEncryption,IRoleRepository roleRepository,IUserRoleRepository userRoleRepository,IJWTProvider jWTProvider,IHttpContextService httpContextService,IConfiguration configuration,ICandidateRepository candidateRepository) : IAuthService
     {
         public async Task<Result<bool>> AssignRole(AssignRoleRequest model)
         {
@@ -363,7 +363,13 @@ namespace CodzSkillLabs.Application.Services
                 RoleId = role.Id,
             };
             await userRoleRepository.AddAsync(userRole);
+            var candiate = new Candidate
+            {
+                UserId = User.Id
+            };
+            await candidateRepository.AddAsync(candiate);
             var returnVal = await unitOfWork.SaveChangesAsync();
+            
            if(returnVal > 0)
             {
                 transaction.Commit();

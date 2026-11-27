@@ -20,6 +20,15 @@ namespace CodzSkillLabs.Domain.Enums
         Rejected=3
     }
 
+    public enum CohortStatus
+    {
+        Draft = 1,
+        Published = 2,
+        Ongoing = 3,
+        Completed = 4,
+        Cancelled = 5
+    }
+
 
 
 }

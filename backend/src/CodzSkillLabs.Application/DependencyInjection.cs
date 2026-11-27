@@ -14,6 +14,7 @@ namespace CodzSkillLabs.Application
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ITrainerService, TrainerService>();
             services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<ICandidateService, CandidateService>();
             services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
             return services;

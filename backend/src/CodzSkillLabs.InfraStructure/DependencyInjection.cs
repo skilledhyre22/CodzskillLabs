@@ -34,8 +34,8 @@ namespace CodzSkillLabs.InfraStructure
             services.AddScoped<ITrainerRepository, TrainerRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<IErrorLogRepository, ErrorLogRepository>();
-            
-
+            services.AddScoped<ICandidateRepository, CandidateRepository>();
+            services.AddScoped<ICohortRepository, CohortRepository>();
             return services;
         }
     }

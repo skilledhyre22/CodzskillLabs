@@ -9,10 +9,10 @@ namespace CodzSkillLabs.Domain.Entitites
 {
     public class Course:BaseEntity
     {
-               public Guid UserId { get; set; }
+            public Guid UserId { get; set; }
 
              [ForeignKey(nameof(UserId))]
-             public User? User { get; set; }
+            public User? User { get; set; }
             public string Title { get; set; } = string.Empty;
 
             public string? Description { get; set; } = string.Empty;
