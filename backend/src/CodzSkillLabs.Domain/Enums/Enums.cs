@@ -20,7 +20,7 @@ namespace CodzSkillLabs.Domain.Enums
         Rejected=3
     }
 
-    public enum CohortStatus
+    public enum CohortStatus:byte
     {
         Draft = 1,
         Published = 2,

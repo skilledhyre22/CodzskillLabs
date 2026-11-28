@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="EndPoints\CohortController.cs~RF5144b.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Carter" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />

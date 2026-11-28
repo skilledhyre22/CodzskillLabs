@@ -456,6 +456,13 @@ const GetTrainerCourses = () => {
                       >
                         View Details →
                       </button>
+                       <button
+                        type="button"
+                        onClick={() => navigate("/cohort-by-course/" + course.id)}
+                        className="w-full rounded-xl bg-indigo-600 px-3 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
+                      >
+                        Cohort of Courses →
+                      </button>
                     </div>
                   </div>
                 </div>

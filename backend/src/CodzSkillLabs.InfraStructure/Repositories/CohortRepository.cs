@@ -7,6 +7,7 @@ using CodzSkillLabs.Application.Interfaces.IRepository;
 using CodzSkillLabs.Domain.Entitites;
 using CodzSkillLabs.Domain.Enums;
 using CodzSkillLabs.InfraStructure.Data;
+using CodzSkillLabs.InfraStructure.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodzSkillLabs.InfraStructure.Repositories
@@ -65,13 +66,13 @@ namespace CodzSkillLabs.InfraStructure.Repositories
             return result!;
         }
 
-        public async Task<IEnumerable<CohortResponse>> GetCohortsByCourseId(Guid courseId)
+        public async Task<IEnumerable<CohortResponse>> GetCohortsByCourseId(Guid courseId, Guid userId)
         {
             var result = await (
                 from ct in context.Cohorts
                 join c in context.Courses
                 on ct.CourseId equals c.Id
-                where ct.CourseId == courseId
+                where ct.CourseId == courseId && c.UserId == userId
                 select new CohortResponse
                 {
                     Id = ct.Id,
@@ -142,28 +143,30 @@ namespace CodzSkillLabs.InfraStructure.Repositories
 
             return result;
         }
-        public async Task<IEnumerable<CohortResponse>> GetPublishedCohorts()
+        public async Task<IEnumerable<CohortResponse>> GetPublishedCohorts(Guid userId)
         {
             var result = await (
-                 from ct in context.Cohorts
-                 join c in context.Courses
-                 on ct.CourseId equals c.Id
-                 where ct.Status==CohortStatus.Published && c.Status==CourseStatus.Approved
-                 select new CohortResponse()
-                 {
-                     Id = ct.Id,
-                     CourseId = ct.CourseId,
-                     CourseName = c.Title,
-                     Name = ct.Name,
-                     Overview = ct.Overview,
-                     StartDate = ct.StartDate,
-                     EndDate = ct.EndDate,
-                     DurationWeeks = ct.DurationWeeks,
-                     ClassesPerWeek = ct.ClassesPerWeek,
-                     Capacity = ct.Capacity,
-                     Status = ct.Status
-                 }
-             ).ToListAsync();
+                from ct in context.Cohorts
+                join c in context.Courses
+                on ct.CourseId equals c.Id
+                where ct.Status == CohortStatus.Published
+                   && c.Status == CourseStatus.Approved
+                   && c.UserId == userId
+                select new CohortResponse()
+                {
+                    Id = ct.Id,
+                    CourseId = ct.CourseId,
+                    CourseName = c.Title,
+                    Name = ct.Name,
+                    Overview = ct.Overview,
+                    StartDate = ct.StartDate,
+                    EndDate = ct.EndDate,
+                    DurationWeeks = ct.DurationWeeks,
+                    ClassesPerWeek = ct.ClassesPerWeek,
+                    Capacity = ct.Capacity,
+                    Status = ct.Status
+                }
+            ).ToListAsync();
 
             return result;
         }

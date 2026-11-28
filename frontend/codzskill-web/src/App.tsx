@@ -22,6 +22,12 @@ import TrainerDashboard from "./modules/trainer/TrainerDashBoardPage";
 import GetAllTrainers from "./pages/trainer/GetAllTrainers";
 import GetTrainerDetails from "./pages/trainer/GetTrainerDetails";
 import UpdateTrainerDetails from "./pages/trainer/UpdateTrainerDetails";
+import CreateCohort from "./pages/cohort/CreateCohort";
+import UpdateCohort from "./pages/cohort/UpdateCohort";
+import GetCohortDetails from "./pages/cohort/GetCohortDetails";
+import CohortByCourse from "./pages/cohort/CohortByCourse";
+
+import GetAllCohorts from "./pages/cohort/GetAllCohorts";
 
 
 // // import { AuthProvider } from './app/providers/AuthProvider';
@@ -80,6 +86,12 @@ export const App: React.FC = () => {
             <Route path="/course/:id" element={<GetCourseDetails/>}></Route>
             <Route path="/update-course/:id" element={<UpdateCourse/>}></Route>
             <Route path="/update-course-status/:id" element={<UpdateCourseStatus/>}></Route>
+
+            <Route path="/add-cohort" element={<CreateCohort/>}></Route>
+            <Route path="/all-cohorts" element={<GetAllCohorts/>}></Route>
+            <Route path="/update-cohort/:id" element={<UpdateCohort/>}></Route>
+            <Route path="/cohort/:id" element={<GetCohortDetails/>}></Route>
+            <Route path="/cohort-by-course/:id" element={<CohortByCourse/>}></Route>
            </Routes>
           </BrowserRouter>
           </> 

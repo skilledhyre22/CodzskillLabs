@@ -9,11 +9,14 @@ import GetAllUsers from "../../pages/superadmin/GetAllUsers";
 import GetAllCourses from "../../pages/course/GetAllCourses";
 import GetAllTrainers from "../../pages/trainer/GetAllTrainers";
 
+import GetAllCohorts from "../../pages/cohort/GetAllCohorts";
+
 type DashboardSection =
   | "dashboard"
   | "users"
   | "applications"
-  | "courses";
+  | "courses"
+  | "cohorts";
 
 const SuperAdminDashboard = () => {
   const navigate = useNavigate();
@@ -37,6 +40,7 @@ const SuperAdminDashboard = () => {
     { id: "users", label: "User Management", icon: "♙" },
     { id: "applications", label: "Trainer Applications", icon: "▤" },
     { id: "courses", label: "Course Management", icon: "▣" },
+    { id: "cohorts", label: "Cohort Management", icon: "▦" },
   ];
 
   const getSectionTitle = () => {
@@ -47,6 +51,8 @@ const SuperAdminDashboard = () => {
         return "Trainer Applications";
       case "courses":
         return "Course Management";
+      case "cohorts":
+        return "Cohort Management";
       default:
         return "Dashboard";
     }
@@ -56,12 +62,15 @@ const SuperAdminDashboard = () => {
     switch (activeSection) {
       case "users":
         return <GetAllUsers />;
-        
-  case "applications":
+
+      case "applications":
         return <GetAllTrainers />;
 
       case "courses":
         return <GetAllCourses />;
+
+      case "cohorts":
+        return <GetAllCohorts />;
 
       default:
         return (
@@ -118,6 +127,14 @@ const SuperAdminDashboard = () => {
                       "Review courses and manage course approvals.",
                     icon: "📚",
                     color: "bg-emerald-50",
+                  },
+                  {
+                    id: "cohorts" as const,
+                    title: "Cohort Management",
+                    description:
+                      "View cohorts created under different courses.",
+                    icon: "🎓",
+                    color: "bg-violet-50",
                   },
                 ].map((item) => (
                   <button

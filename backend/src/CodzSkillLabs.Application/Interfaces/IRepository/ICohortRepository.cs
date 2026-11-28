@@ -11,11 +11,11 @@ namespace CodzSkillLabs.Application.Interfaces.IRepository
         Task<IEnumerable<CohortResponse>> GetAllCohorts();
         Task<CohortResponse> GetCohortById(Guid id);
 
-        Task<IEnumerable<CohortResponse>> GetPublishedCohorts();
+        Task<IEnumerable<CohortResponse>> GetPublishedCohorts(Guid userId);
 
         Task<IEnumerable<CohortResponse>> GetCohortsByUserId(Guid userId);
 
-        Task<IEnumerable<CohortResponse>> GetCohortsByCourseId(Guid courseId);
+        Task<IEnumerable<CohortResponse>> GetCohortsByCourseId(Guid courseId,Guid userId);
 
         Task<IEnumerable<CohortResponse>> GetPendingCohorts();
     }

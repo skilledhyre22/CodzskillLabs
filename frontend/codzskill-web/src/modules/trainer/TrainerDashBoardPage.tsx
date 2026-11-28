@@ -1,9 +1,12 @@
+
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { authToken } from "../../shared/api/axiosInstance";
 
 import { getUserRole } from "../../shared/services/authService";
 import GetTrainerCourses from "../../pages/trainer/GetTrainerCourses";
+import GetApprovedCohorts from "../../pages/trainer/GetApprovedCohorts";
+
 
 const TrainerDashboard = () => {
   const navigate = useNavigate();
@@ -84,7 +87,7 @@ const TrainerDashboard = () => {
         </div>
 
         {/* My Courses */}
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <section className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
           <div className="border-b border-slate-100 px-6 py-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -108,6 +111,35 @@ const TrainerDashboard = () => {
 
           <div className="p-6">
             <GetTrainerCourses />
+          </div>
+
+        </section>
+
+        {/* My Cohorts */}
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+          <div className="border-b border-slate-100 px-6 py-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  My Published Cohorts
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  View cohorts approved and published by Admin.
+                </p>
+              </div>
+
+              <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700">
+                Cohort Management
+              </span>
+
+            </div>
+          </div>
+
+          <div className="p-6">
+            <GetApprovedCohorts />
           </div>
 
         </section>

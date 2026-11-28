@@ -15,5 +15,11 @@ namespace CodzSkillLabs.InfraStructure.Identity
             if(Guid.TryParse(strId,out Guid userId)) return userId;
             return Guid.Empty;
         }
+
+        public bool IsInRole(string role)
+        {
+            return httpContext.HttpContext?
+                .User.IsInRole(role) ?? false;
+        }
     }
 }

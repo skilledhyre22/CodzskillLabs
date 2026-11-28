@@ -1,4 +1,4 @@
-import type { CourseCategory, CourseStatus } from "../enums/Enums"
+import type { CohortStatus, CourseCategory, CourseStatus } from "../enums/Enums"
 
 export interface SignUpRequest
 {
@@ -171,5 +171,51 @@ export interface CourseUpdateRequest
 
 export interface CourseUpdateStatus
 {
+  id:string,
   status:CourseStatus
+}
+
+export interface CohortRequest
+{
+  courseId:string,
+  name:string,
+  overView?:string,
+  startDate:Date,
+  endDate:Date,
+  durationWeeks:number,
+  classesPerWeek:number,
+  capacity:number
+}
+
+export interface CohortResponse
+{
+  id:string
+  courseId:string,
+  name:string,
+  courseName:string,
+  overview?:string,
+  startDate:string,
+  endDate:string,
+  durationWeeks:number,
+  classesPerWeek:number,
+  capacity:number,
+  status:CohortStatus
+}
+
+export interface CohortUpdateRequest
+{
+  id:string,
+  name:string,
+  overView?:string,
+  startDate:string,
+  endDate:string,
+  durationWeeks:number,
+  classesPerWeek:number,
+  capacity:number
+}
+
+export interface CohortUpdateStatus
+{
+  id:string,
+  status:CohortStatus
 }

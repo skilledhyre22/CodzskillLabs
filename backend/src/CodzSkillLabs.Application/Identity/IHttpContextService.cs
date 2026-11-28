@@ -7,5 +7,7 @@ namespace CodzSkillLabs.Application.Identity
     public interface IHttpContextService
     {
         Guid GetUserId();
+        bool IsInRole(string role);
+
     }
 }
